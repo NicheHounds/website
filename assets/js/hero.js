@@ -48,19 +48,21 @@ function start(hero) {
     lastH = H;
     const mobile = W < 720;
 
-    // A small sphere: the radius follows the width, so a phone sees a
-    // narrower slice of the same curve.
-    const R = 1.6 * Math.max(W, 900);
-    const cx = W * (mobile ? 0.4 : 0.3);
-    const horizon = H * (mobile ? 0.8 : 0.775);
-    const cy = horizon + R;
+    // A small sphere seen from just above its surface. The horizon rises to a
+    // crest right of centre and runs behind the hound, as in the sketch. The
+    // radius follows the width, so a phone sees a narrower slice of it.
+    const R = 2.6 * Math.max(W, 900);
+    const cx = W * (mobile ? 0.62 : 0.68);
+    const crest = H * (mobile ? 0.76 : 0.7);
+    const cy = crest + R;
     const surfaceY = (x) => cy - Math.sqrt(Math.max(0, R * R - (x - cx) * (x - cx)));
 
-    // The hound: rig units -> px. 505 rig units is nose-to-paw standing height.
-    const dogH = mobile ? Math.min(W * 0.56, H * 0.3) : Math.min(H * 0.43, W * 0.31);
+    // The hound stands on the near ground, in front of the horizon.
+    // Rig units -> px: 505 rig units is nose-to-paw standing height.
+    const dogH = mobile ? Math.min(W * 0.56, H * 0.3) : Math.min(H * 0.37, W * 0.3);
     const k = dogH / 505;
-    const dogX = mobile ? W * 0.42 : Math.max(W * 0.285, 300 * k + 24);
-    const ground = surfaceY(dogX) + dogH * 0.07;
+    const dogX = mobile ? W * 0.42 : Math.max(W * 0.25, 300 * k + 24);
+    const ground = Math.min(surfaceY(dogX) + dogH * 0.22, H - dogH * 0.06);
     Object.assign(houndSvg.style, {
       left: `${dogX - (376 - 90) * k}px`,
       top: `${ground - (625 - 100) * k}px`,
@@ -68,19 +70,22 @@ function start(hero) {
       height: `${545 * k}px`,
     });
 
-    // Earth: right of the copy on desktop, behind the copy on a phone.
-    const D = mobile ? Math.min(W * 0.74, H * 0.4) : Math.min(W * 0.3, H * 0.5, 560);
-    const ex = mobile ? W * 0.72 : W * 0.74;
-    const ey = mobile ? H * 0.31 : Math.min(H * 0.42, horizon - D * 0.62);
+    // Earth: beside the tagline on desktop, behind it on a phone.
+    const heroTop = hero.getBoundingClientRect().top;
+    const textTop = hero.querySelector('.hero-copy h1').getBoundingClientRect().top - heroTop;
+    const textBottom = hero.querySelector('.hero-sub').getBoundingClientRect().bottom - heroTop;
+    const copyMid = (textTop + textBottom) / 2;
+    const D = mobile ? Math.min(W * 0.74, H * 0.4) : Math.max(150, Math.min(W * 0.15, H * 0.3, 280));
+    const ex = mobile ? W * 0.72 : W * 0.755;
+    const ey = mobile ? H * 0.31 : copyMid;
     Object.assign(earth.style, { width: `${D}px`, height: `${D}px`, left: `${ex - D / 2}px`, top: `${ey - D / 2}px` });
 
-    // The mark's two stars.
-    const s = mobile ? W * 0.2 : Math.min(H * 0.17, W * 0.12);
+    // The mark's two stars, up and to the left of Earth as in the logo.
+    const s = mobile ? W * 0.2 : D * 0.62;
     Object.assign(logoStars.style, {
       width: `${s}px`,
-      // Up and to the left of Earth, as in the mark.
-      left: mobile ? `${W * 0.07}px` : `${ex - D / 2 - s * 1.05}px`,
-      top: mobile ? `${H * 0.53}px` : `${Math.max(64, ey - D / 2 - s * 0.35)}px`,
+      left: mobile ? `${W * 0.07}px` : `${ex - D / 2 - s * 0.95}px`,
+      top: mobile ? `${H * 0.53}px` : `${Math.max(64, ey - D / 2 - s * 0.55)}px`,
     });
 
     drawStars(W, H, surfaceY);
