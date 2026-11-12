@@ -1,4 +1,13 @@
-import { LAND, browserLocation, locationFromTimezone, moonPhase, solarView, sunPosition } from "./astro.js";
+import { browserLocation, locationFromTimezone, moonPhase, solarView, sunPosition } from "./astro.js";
+
+/*
+ * Earth textures, self-hosted, no runtime third-party requests.
+ * Day: NASA Visible Earth Blue Marble "land, ocean, ice" (public domain),
+ *   Wikimedia Commons File:Land_ocean_ice_2048.jpg
+ * Night: NASA city lights, April–October 2012 (public domain),
+ *   Wikimedia Commons File:City_Lights_2012_-_Flat_map.jpg
+ * Clouds: NASA Blue Marble cloud map (public domain), stored locally.
+ */
 
 const params = new URLSearchParams(location.search);
 const POSES = ["standing", "sitting", "lying", "sleeping"];
@@ -6,12 +15,8 @@ const SIT_MS = 8000;
 const LIE_MS = 20000;
 const SLEEP_MS = 40000;
 
-const OCEAN_DAY = [26, 78, 112];
-const OCEAN_NIGHT = [12, 20, 34];
-const LAND_DAY = [226, 216, 196];
-const LAND_NIGHT = [36, 46, 64];
-
-let mask;
+let maps = null;
+let mapsPromise = null;
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
@@ -63,37 +68,66 @@ function viewerLocation(date) {
   return browserLocation(date);
 }
 
-function landMask() {
-  if (mask) return mask;
-  const width = 720;
-  const height = 360;
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  ctx.fillStyle = "#fff";
-  for (const ring of LAND) {
-    ctx.beginPath();
-    ring.forEach(([lat, lon], index) => {
-      const x = ((lon + 180) / 360) * width;
-      const y = ((90 - lat) / 180) * height;
-      if (index === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.closePath();
-    ctx.fill();
-  }
-  mask = ctx.getImageData(0, 0, width, height);
-  return mask;
+function loadImageData(url) {
+  return new Promise((resolve) => {
+    if (!url) {
+      resolve(null);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0);
+      resolve(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
 }
 
-function isLand(lat, lon) {
-  const image = landMask();
-  let x = Math.floor(((lon + 180) / 360) * image.width);
-  let y = Math.floor(((90 - lat) / 180) * image.height);
-  x = clamp(x, 0, image.width - 1);
-  y = clamp(y, 0, image.height - 1);
-  return image.data[(y * image.width + x) * 4] > 128;
+function ensureMaps(canvas) {
+  if (maps) return Promise.resolve(maps);
+  if (!mapsPromise) {
+    mapsPromise = Promise.all([
+      loadImageData(canvas.dataset.day),
+      loadImageData(canvas.dataset.night),
+      loadImageData(canvas.dataset.clouds)
+    ]).then(([day, night, clouds]) => {
+      maps = { day, night, clouds };
+      return maps;
+    });
+  }
+  return mapsPromise;
+}
+
+function sample(image, u, v) {
+  if (!image) return [0, 0, 0];
+  const uu = ((u % 1) + 1) % 1;
+  const vv = clamp(v, 0, 0.9999);
+  const x = uu * (image.width - 1);
+  const y = vv * (image.height - 1);
+  const x0 = Math.floor(x);
+  const y0 = Math.floor(y);
+  const x1 = Math.min(image.width - 1, x0 + 1);
+  const y1 = Math.min(image.height - 1, y0 + 1);
+  const tx = x - x0;
+  const ty = y - y0;
+  const at = (px, py) => {
+    const o = (py * image.width + px) * 4;
+    return [image.data[o], image.data[o + 1], image.data[o + 2]];
+  };
+  const a = at(x0, y0);
+  const b = at(x1, y0);
+  const c = at(x0, y1);
+  const d = at(x1, y1);
+  return [0, 1, 2].map((i) => {
+    const top = a[i] + (b[i] - a[i]) * tx;
+    const bot = c[i] + (d[i] - c[i]) * tx;
+    return top + (bot - top) * ty;
+  });
 }
 
 function ll(lat, lon) {
@@ -123,16 +157,17 @@ function normalize(v) {
   return [v[0] / length, v[1] / length, v[2] / length];
 }
 
-function paintEarth(canvas, loc, sun) {
+function paintEarth(canvas, loc, sun, textures) {
   const css = canvas.clientWidth || 320;
   const dpr = Math.min(2, window.devicePixelRatio || 1);
-  const size = Math.max(32, Math.round(css * dpr));
+  const size = Math.max(48, Math.round(css * dpr));
   if (canvas.width !== size || canvas.height !== size) {
     canvas.width = size;
     canvas.height = size;
   }
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  const radius = size / 2 - dpr;
+  const inset = size * 0.07;
+  const radius = size / 2 - inset;
   const cx = size / 2;
   const cy = size / 2;
   const view = normalize(ll(loc.lat, loc.lon));
@@ -161,30 +196,51 @@ function paintEarth(canvas, loc, sun) {
       const px = east[0] * dx + north[0] * dy + view[0] * dz;
       const py = east[1] * dx + north[1] * dy + view[1] * dz;
       const pz = east[2] * dx + north[2] * dy + view[2] * dz;
-      const lat = Math.asin(clamp(pz, -1, 1)) * 180 / Math.PI;
-      const lon = Math.atan2(py, px) * 180 / Math.PI;
+      const lat = Math.asin(clamp(pz, -1, 1));
+      const lon = Math.atan2(py, px);
+      const u = (lon / Math.PI + 1) / 2;
+      const v = 0.5 - lat / Math.PI;
       const incidence = sx * dx + sy * dy + sz * dz;
-      const light = smoothstep(-0.15, 0.22, incidence);
-      const land = isLand(lat, lon);
-      let color = mixColor(land ? LAND_NIGHT : OCEAN_NIGHT, land ? LAND_DAY : OCEAN_DAY, light);
-      const limb = 0.62 + 0.38 * dz;
+      const light = smoothstep(-0.18, 0.2, incidence);
+      const day = sample(textures.day, u, v);
+      const nightTex = sample(textures.night, u, v);
+      const night = [
+        nightTex[0] * 0.35 + 8,
+        nightTex[1] * 0.32 + 10,
+        nightTex[2] * 0.55 + 22
+      ];
+      const lights = Math.max(nightTex[0], nightTex[1], nightTex[2]) / 255;
+      let color = mixColor(night, day, light);
+      color = [
+        color[0] + lights * (1 - light) * 210,
+        color[1] + lights * (1 - light) * 180,
+        color[2] + lights * (1 - light) * 90
+      ];
+      const cloud = textures.clouds ? sample(textures.clouds, u, v)[0] / 255 : 0;
+      const cloudAmt = cloud * (0.28 + 0.62 * light);
+      color = mixColor(color, [248, 250, 252], cloudAmt);
+      const limb = 0.72 + 0.28 * dz;
       color = color.map((channel) => channel * limb);
-      const rim = smoothstep(0.93, 1, Math.sqrt(rr)) * (0.05 + 0.16 * light);
-      color[0] += rim * 186;
-      color[1] += rim * 206;
-      color[2] += rim * 220;
+      const rim = smoothstep(0.82, 1, Math.sqrt(rr));
+      color[0] += rim * (40 + 80 * light);
+      color[1] += rim * (70 + 90 * light);
+      color[2] += rim * (110 + 70 * light);
       data[index] = color[0];
       data[index + 1] = color[1];
       data[index + 2] = color[2];
       data[index + 3] = 255;
     }
   }
+  ctx.clearRect(0, 0, size, size);
   ctx.putImageData(image, 0, 0);
+  const glow = ctx.createRadialGradient(cx, cy, radius * 0.86, cx, cy, radius * 1.12);
+  glow.addColorStop(0, "rgba(150, 196, 226, 0)");
+  glow.addColorStop(0.55, "rgba(176, 214, 236, 0.28)");
+  glow.addColorStop(1, "rgba(176, 214, 236, 0)");
+  ctx.fillStyle = glow;
   ctx.beginPath();
-  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(245, 243, 238, 0.55)";
-  ctx.lineWidth = Math.max(1, dpr);
-  ctx.stroke();
+  ctx.arc(cx, cy, radius * 1.12, 0, Math.PI * 2);
+  ctx.fill();
 }
 
 function skyName(altDeg, hourAngle) {
@@ -211,7 +267,7 @@ function paintSky(date, loc) {
   let ground = mixColor([118, 128, 148], [245, 243, 238], light);
   ground = mixColor(ground, [236, 196, 140], warmth * (0.35 + (1 - dayAmount) * 0.25));
   if (sky === "night") ground = mixColor(ground, [90, 102, 126], 0.34 * (1 - lunarLit));
-  const hound = mixColor([245, 243, 238], warmth > 0 ? [246, 220, 180] : [206, 214, 226], warmth > 0 ? 0.4 : (1 - dayAmount) * 0.22);
+  const hound = mixColor([245, 243, 238], warmth > 0 ? [247, 228, 196] : [236, 238, 242], warmth > 0 ? 0.22 : 0.06);
 
   const root = document.documentElement.style;
   root.setProperty("--ground", hex(ground));
@@ -243,20 +299,21 @@ function paintSky(date, loc) {
 
 function setupDog(root) {
   if (!root) return;
-  const nodes = {};
-  root.querySelectorAll(".dog-pose").forEach((el) => {
-    nodes[el.dataset.pose] = el;
-  });
-  let state = "standing";
+  let state = root.dataset.state || "standing";
   function setState(next) {
-    if (!nodes[next] || next === state) return;
+    if (!POSES.includes(next) || next === state) return;
     state = next;
     root.dataset.state = next;
-    Object.entries(nodes).forEach(([name, el]) => {
-      el.classList.toggle("is-active", name === next);
-    });
   }
-  requestAnimationFrame(() => root.classList.add("is-live"));
+  const scrub = params.get("scrub");
+  if (scrub !== null && scrub !== "") {
+    const ms = Number(scrub);
+    if (Number.isFinite(ms)) {
+      root.querySelectorAll(".breath, .wag, .twitch, .look, .lid, .z").forEach((el) => {
+        el.style.animationDelay = `-${ms}ms`;
+      });
+    }
+  }
   const forced = params.get("dog");
   if (POSES.includes(forced)) {
     setState(forced);
@@ -279,25 +336,105 @@ function setupDog(root) {
   }, 400);
 }
 
+function horizonY(width, x) {
+  const radius = width * 1.05;
+  const cx = width / 2;
+  const crest = Math.min(width * 0.16, 150);
+  const cy = crest + radius;
+  const dx = x - cx;
+  return cy - Math.sqrt(Math.max(0, radius * radius - dx * dx));
+}
+
+function layoutHorizons() {
+  document.querySelectorAll("[data-horizon]").forEach((horizon) => {
+    const svg = horizon.querySelector(".lunar-svg");
+    if (!svg) return;
+    const width = Math.max(320, horizon.clientWidth);
+    const height = Math.max(160, horizon.clientHeight);
+    svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    svg.setAttribute("preserveAspectRatio", "none");
+    const crest = horizonY(width, width / 2);
+    const lift = height * 0.12;
+    const point = (x) => horizonY(width, x) - crest + lift;
+    const samples = 56;
+    let curve = "";
+    for (let i = 0; i <= samples; i += 1) {
+      const x = -width * 0.06 + width * 1.12 * (i / samples);
+      curve += `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${point(x).toFixed(1)} `;
+    }
+    const clip = svg.querySelector(".horizon-path");
+    const rim = svg.querySelector(".horizon-rim");
+    if (clip) clip.setAttribute("d", `${curve}L ${width * 1.08} ${height + 80} L ${-width * 0.08} ${height + 80} Z`);
+    if (rim) rim.setAttribute("d", curve.trim());
+    const craters = svg.querySelector(".craters");
+    if (craters) {
+      craters.replaceChildren();
+      const spots = [0.16, 0.3, 0.46, 0.58, 0.72, 0.84, 0.38];
+      const sizes = [16, 30, 48, 20, 26, 14, 12];
+      const ellipse = (cls, rx, ry) => {
+        const node = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+        node.setAttribute("class", cls);
+        node.setAttribute("rx", String(rx));
+        node.setAttribute("ry", String(ry));
+        return node;
+      };
+      spots.forEach((t, index) => {
+        const x = width * t;
+        const y = point(x) + sizes[index] * 0.9;
+        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        g.setAttribute("class", "crater");
+        g.setAttribute("transform", `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+        const rx = sizes[index];
+        const ry = rx * 0.58;
+        g.append(ellipse("crater-lip", rx + 5, ry + 3), ellipse("crater-pit", rx, ry), ellipse("crater-shadow", rx, ry));
+        craters.appendChild(g);
+      });
+    }
+    const dog = horizon.querySelector("[data-dog]");
+    if (dog) {
+      const footT = width < 720 ? 0.5 : 0.46;
+      const x = width * footT;
+      const y = point(x);
+      const x2 = x + 28;
+      const y2 = point(x2);
+      const angle = Math.atan2(y2 - y, x2 - x) * 180 / Math.PI;
+      dog.style.left = `${x}px`;
+      dog.style.top = `${y}px`;
+      dog.style.transformOrigin = "64% 100%";
+      dog.style.transform = `translate(-64%, -100%) rotate(${angle.toFixed(2)}deg)`;
+    }
+  });
+}
+
 function setupEarth(canvas) {
   if (!canvas) return () => {};
   let frame = 0;
+  let textures = null;
   const draw = () => {
     const date = clock();
     const loc = viewerLocation(date);
     paintSky(date, loc);
-    paintEarth(canvas, loc, sunPosition(date));
+    if (textures) paintEarth(canvas, loc, sunPosition(date), textures);
   };
   const schedule = () => {
     window.cancelAnimationFrame(frame);
-    frame = window.requestAnimationFrame(draw);
+    frame = window.requestAnimationFrame(() => {
+      layoutHorizons();
+      draw();
+    });
   };
+  ensureMaps(canvas).then((loaded) => {
+    textures = loaded;
+    schedule();
+  });
   if (typeof ResizeObserver !== "undefined") {
     const observer = new ResizeObserver(schedule);
     observer.observe(canvas.parentElement || canvas);
+    document.querySelectorAll("[data-horizon]").forEach((node) => observer.observe(node));
   } else {
     window.addEventListener("resize", schedule);
   }
+  layoutHorizons();
   schedule();
   return schedule;
 }
@@ -305,11 +442,12 @@ function setupEarth(canvas) {
 const earthCanvas = document.querySelector("[data-earth] canvas");
 setupDog(document.querySelector("[data-dog]"));
 const redraw = setupEarth(earthCanvas);
+if (!earthCanvas) layoutHorizons();
 window.setInterval(() => {
   const date = clock();
   const loc = viewerLocation(date);
   paintSky(date, loc);
-  if (earthCanvas) paintEarth(earthCanvas, loc, sunPosition(date));
+  if (earthCanvas && maps) paintEarth(earthCanvas, loc, sunPosition(date), maps);
 }, 60000);
 
 if (!earthCanvas) {

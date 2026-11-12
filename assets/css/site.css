@@ -111,9 +111,9 @@ a {
 
 .brand-name {
   font-family: var(--serif);
-  font-size: 1.35rem;
+  font-size: 1.28rem;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .nav {
@@ -131,10 +131,14 @@ a {
   letter-spacing: 0.03em;
 }
 
-.nav a:hover,
-.nav a[aria-current="page"] {
+.nav a:hover {
   text-decoration: underline;
   text-underline-offset: 0.35em;
+}
+
+.nav a[aria-current="page"] {
+  text-decoration: none;
+  box-shadow: inset 0 -1.5px 0 var(--ink);
 }
 
 .main--hero {
@@ -154,10 +158,10 @@ a {
 .page-title {
   font-family: var(--serif);
   font-weight: 560;
-  font-size: clamp(2.2rem, 5vw, 3.6rem);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  margin: 0 0 1rem;
+  font-size: clamp(2.4rem, 5vw, 3.8rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  margin: 0 0 0.85rem;
 }
 
 .lede,
@@ -199,7 +203,7 @@ a {
 
 .hero-copy {
   position: relative;
-  z-index: 2;
+  z-index: 4;
   grid-column: 1;
   grid-row: 1;
   max-width: 16em;
@@ -210,28 +214,25 @@ a {
   margin: 0;
   font-family: var(--serif);
   font-weight: 560;
-  font-size: clamp(2.5rem, 5.2vw, 4.6rem);
-  line-height: 1.02;
-  letter-spacing: -0.03em;
+  font-size: clamp(2.35rem, 4.6vw, 4.15rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
 }
 
 .earth-wrap {
   grid-column: 2;
   grid-row: 1;
-  justify-self: center;
-  width: min(30vw, 300px);
+  justify-self: end;
+  width: min(28vw, 280px);
   aspect-ratio: 1;
   z-index: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 32%, #2a627f, #121826 70%);
-  box-shadow: 0 0 0 1px rgba(245, 243, 238, 0.28);
+  margin-right: 2vw;
 }
 
 .earth-wrap canvas {
   display: block;
   width: 100%;
   height: 100%;
-  border-radius: 50%;
 }
 
 .lunar {
@@ -242,22 +243,24 @@ a {
 .lunar--hero {
   grid-column: 1 / -1;
   grid-row: 2;
-  height: clamp(150px, 22vh, 250px);
+  height: clamp(240px, 36vh, 420px);
 }
 
 .lunar--footer {
-  height: 180px;
-}
-
-.lunar-clip {
-  height: 100%;
-  overflow: hidden;
+  height: 168px;
 }
 
 .lunar-svg {
   display: block;
   width: 100%;
   height: 100%;
+  overflow: visible;
+}
+
+.horizon-rim {
+  stroke: rgba(18, 24, 38, 0.28);
+  stroke-width: 3;
+  stroke-linecap: round;
 }
 
 .ground {
@@ -288,59 +291,163 @@ a {
 
 .dog-stage {
   position: absolute;
-  left: 4%;
-  bottom: 8%;
-  width: min(18vw, 200px);
-  aspect-ratio: 1200 / 1120;
+  width: min(38vw, 390px);
+  aspect-ratio: 640 / 500;
   pointer-events: none;
   z-index: 3;
+  transform-origin: 58% 92%;
 }
 
-.dog-pose {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-}
-
-.dog-pose.is-active {
-  opacity: 1;
-}
-
-.dog.is-live .dog-pose,
-.dog-stage.is-live .dog-pose {
-  transition: opacity 0.7s ease;
-}
-
-.dog-pose svg {
+.hound-svg {
   display: block;
   width: 100%;
   height: 100%;
   overflow: visible;
-  filter: drop-shadow(0 7px 0 rgba(7, 11, 20, 0.38)) drop-shadow(0 1px 0 rgba(7, 11, 20, 0.55));
+  filter: drop-shadow(0 10px 0 rgba(7, 11, 20, 0.28)) drop-shadow(0 2px 1px rgba(7, 11, 20, 0.4));
 }
 
-.ink {
-  fill: var(--hound);
+.hound {
+  --body-y: 0px;
+  --body-r: 0deg;
+  --head-r: -8deg;
+  --ear-r: 0deg;
+  --tail-r: -16deg;
+  --fore-r: 1deg;
+  --fore-knee: 2deg;
+  --fore-far-r: -3deg;
+  --fore-knee-far: 4deg;
+  --hind-r: 2deg;
+  --hind-knee: 8deg;
+  --hind-far-r: 6deg;
+  --hind-knee-far: 10deg;
 }
 
-.cut {
-  fill: #121826;
+.dog-stage[data-state="sitting"] .hound {
+  --body-y: 8px;
+  --body-r: -3deg;
+  --head-r: 6deg;
+  --tail-r: 12deg;
+  --fore-r: 4deg;
+  --fore-knee: 6deg;
+  --fore-far-r: 2deg;
+  --hind-r: -36deg;
+  --hind-knee: 58deg;
+  --hind-far-r: -30deg;
+  --hind-knee-far: 50deg;
 }
 
-.dog-pose[data-pose="sleeping"].is-active .hound {
+.dog-stage[data-state="lying"] .hound {
+  --body-y: 16px;
+  --body-r: 2deg;
+  --head-r: 2deg;
+  --tail-r: 4deg;
+  --fore-r: -42deg;
+  --fore-knee: 18deg;
+  --fore-far-r: -36deg;
+  --fore-knee-far: 16deg;
+  --hind-r: -22deg;
+  --hind-knee: 36deg;
+  --hind-far-r: -16deg;
+  --hind-knee-far: 30deg;
+}
+
+.dog-stage[data-state="sleeping"] .hound {
+  --body-y: 18px;
+  --body-r: 3deg;
+  --head-r: 22deg;
+  --ear-r: 8deg;
+  --tail-r: 0deg;
+  --fore-r: -38deg;
+  --fore-knee: 14deg;
+  --fore-far-r: -32deg;
+  --fore-knee-far: 12deg;
+  --hind-r: -24deg;
+  --hind-knee: 34deg;
+  --hind-far-r: -18deg;
+  --hind-knee-far: 28deg;
+}
+
+.joint {
+  transition: transform 0.85s cubic-bezier(0.45, 0.05, 0.2, 1);
+}
+
+.ink { fill: var(--hound, #f5f3ee); }
+.cut { fill: #121826; }
+
+.breath {
+  transform-origin: 0 20px;
+  animation: breath 3.6s ease-in-out infinite;
+}
+
+.wag {
+  transform-origin: 8px 8px;
+  animation: wag 1.15s ease-in-out infinite;
+}
+
+.twitch {
+  transform-origin: 4px 8px;
+  animation: twitch 5.5s ease-in-out infinite;
+}
+
+.look {
+  transform-origin: 10px 10px;
+  animation: look 8s ease-in-out infinite;
+}
+
+.lid {
   transform-box: fill-box;
-  transform-origin: 62% 88%;
-  animation: breath 4.6s ease-in-out infinite;
+  transform-origin: center;
+  animation: blink 5.8s infinite;
 }
+
+.dog-stage[data-state="sitting"] .wag { animation-duration: 1.8s; }
+.dog-stage[data-state="lying"] .wag { animation-duration: 2.6s; animation-timing-function: ease-in-out; }
+.dog-stage[data-state="sleeping"] .wag,
+.dog-stage[data-state="sleeping"] .twitch,
+.dog-stage[data-state="sleeping"] .look,
+.dog-stage[data-state="sleeping"] .lid { animation: none; }
+.dog-stage[data-state="sleeping"] .breath { animation-duration: 5.4s; }
+.dog-stage[data-state="sleeping"] .lid { transform: scaleY(1); }
+
+.zs { opacity: 0; }
+.z {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.dog-stage[data-state="sleeping"] .zs { opacity: 1; }
+.dog-stage[data-state="sleeping"] .z1 { animation: drift 2.6s ease-in-out infinite; }
+.dog-stage[data-state="sleeping"] .z2 { animation: drift 2.6s ease-in-out infinite 0.7s; }
 
 @keyframes breath {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.012, 1.02);
-  }
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.015, 1.035); }
+}
+@keyframes wag {
+  0%, 100% { transform: rotate(-7deg); }
+  50% { transform: rotate(12deg); }
+}
+@keyframes twitch {
+  0%, 72%, 100% { transform: rotate(0deg); }
+  78% { transform: rotate(-14deg); }
+  84% { transform: rotate(6deg); }
+  90% { transform: rotate(0deg); }
+}
+@keyframes look {
+  0%, 18%, 100% { transform: rotate(0deg); }
+  28%, 46% { transform: rotate(-7deg); }
+  58%, 78% { transform: rotate(5deg); }
+}
+@keyframes blink {
+  0%, 46%, 52%, 100% { transform: scaleY(0.05); }
+  49% { transform: scaleY(1); }
+}
+@keyframes drift {
+  0% { opacity: 0; transform: translate(0, 6px); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(6px, -16px); }
 }
 
 .site-footer {
@@ -529,18 +636,11 @@ a {
 
   .lunar--hero {
     margin-top: auto;
-    height: clamp(190px, 46vw, 260px);
-  }
-
-  .lunar--hero .lunar-svg {
-    width: 175%;
-    margin-left: -28%;
+    height: clamp(230px, 58vw, 340px);
   }
 
   .dog-stage {
-    width: min(62vw, 260px);
-    left: 1%;
-    bottom: 16%;
+    width: min(78vw, 340px);
   }
 
   .sky {
@@ -563,12 +663,15 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dog-pose,
-  .dog-stage.is-live .dog-pose {
-    transition: none;
-  }
-
-  .dog-pose[data-pose="sleeping"].is-active .hound {
-    animation: none;
+  .joint,
+  .breath,
+  .wag,
+  .twitch,
+  .look,
+  .lid,
+  .z,
+  .zs {
+    animation: none !important;
+    transition: none !important;
   }
 }

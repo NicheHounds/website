@@ -13,7 +13,10 @@
     <h1 id="tagline">Serve the niche.<br> Create value, or<br> kill the idea fast.</h1>
   </div>
   <div class="earth-wrap" data-earth>
-    <canvas width="480" height="480" aria-hidden="true"></canvas>
+    <canvas width="520" height="520" aria-hidden="true"
+      data-day="{{ '/assets/img/earth/day.jpg' | relative_url }}"
+      data-night="{{ '/assets/img/earth/night.jpg' | relative_url }}"
+      data-clouds="{{ '/assets/img/earth/clouds.jpg' | relative_url }}"></canvas>
   </div>
   {% include lunar.html id="hero" dog=true %}
 </section>
