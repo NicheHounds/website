@@ -1,67 +1,81 @@
 <div class="dog-stage" data-dog data-state="standing" aria-hidden="true">
-  <svg class="hound-svg" viewBox="0 0 640 500">
+  <svg class="hound-svg" viewBox="0 0 900 620">
     <g class="hound">
-      <g class="joint tail" style="transform: translate(168px, 248px) rotate(var(--tail-r))">
+      <g class="joint tail" style="transform: translate(176px, 214px) rotate(var(--tail-r))">
         <g class="wag">
-          <path class="ink" d="M18 8 C0 -2 -70 -28 -118 -8 C-142 2 -136 28 -104 30 C-58 34 8 20 18 8 Z"/>
+          <path class="ink" d="M24 18 C4 4 -40 -30 -110 -62 C-160 -84 -200 -70 -188 -48 C-160 -20 -40 16 24 18 Z"/>
         </g>
       </g>
 
-      <g class="joint hind far" style="transform: translate(210px, 270px) rotate(var(--hind-far-r))">
-        <path class="ink" d="M-14 -20 C-28 20 -22 70 -6 96 L28 88 C16 52 4 16 10 -16 Z"/>
-        <g class="joint knee" style="transform: translate(10px, 90px) rotate(var(--hind-knee-far))">
-          <path class="ink" d="M-10 0 C-8 36 -2 78 6 112 L30 104 C20 64 10 28 8 0 Z"/>
-          <ellipse class="ink" cx="20" cy="118" rx="22" ry="12"/>
+      <g class="joint hind far" style="transform: translate(230px, 248px) rotate(var(--hind-far-r))">
+        <path class="ink" d="M18 -30 C-8 20 -16 80 4 130 L36 118 C20 70 16 20 32 -24 Z"/>
+        <g class="joint knee" style="transform: translate(18px, 122px) rotate(var(--hind-knee-far))">
+          <path class="ink" d="M-4 0 C2 40 14 90 28 140 L50 130 C34 78 16 32 12 0 Z"/>
+          <path class="ink" d="M18 132 C14 152 30 166 52 158 C50 144 40 134 30 132 Z"/>
         </g>
       </g>
 
-      <g class="joint fore far" style="transform: translate(392px, 268px) rotate(var(--fore-far-r))">
-        <path class="ink" d="M-12 -16 C-20 24 -12 64 0 90 L26 82 C16 50 8 16 12 -12 Z"/>
-        <g class="joint knee" style="transform: translate(12px, 84px) rotate(var(--fore-knee-far))">
-          <path class="ink" d="M-8 0 C-6 32 0 68 6 100 L26 92 C18 56 10 24 8 0 Z"/>
-          <ellipse class="ink" cx="18" cy="106" rx="18" ry="11"/>
+      <g class="joint fore far" style="transform: translate(500px, 250px) rotate(var(--fore-far-r))">
+        <path class="ink" d="M4 -40 C-8 30 0 110 12 190 L40 182 C30 100 22 20 24 -36 Z"/>
+        <g class="joint knee" style="transform: translate(24px, 184px) rotate(var(--fore-knee-far))">
+          <path class="ink" d="M-4 0 C2 28 10 64 16 96 L36 88 C26 52 16 20 12 0 Z"/>
+          <path class="ink" d="M10 90 C8 108 22 120 40 114 C38 102 28 94 20 90 Z"/>
         </g>
       </g>
 
-      <g class="joint body" style="transform: translate(400px, 250px) rotate(var(--body-r)) translate(0, var(--body-y))">
+      <g class="joint body" style="transform: translate(0px, var(--body-y)) rotate(var(--body-r))">
         <g class="breath">
-          <path class="ink" d="M48 8 C86 -16 108 36 96 84 C84 122 28 132 -48 112 C-140 86 -214 58 -236 28 C-248 8 -220 -28 -160 -18 C-80 -6 4 4 48 8 Z"/>
-          <path class="ink" d="M36 16 C64 -36 52 -92 16 -102 C-16 -110 -32 -62 -10 -8 C2 16 18 28 36 16 Z"/>
-          <g class="joint head" style="transform: translate(58px, -36px) rotate(var(--head-r))">
+          <path class="ink" d="M418 188
+            C500 142 592 132 652 188
+            C696 228 708 292 674 340
+            C652 392 618 418 572 396
+            C520 370 478 312 436 270
+            C386 222 318 214 258 208
+            C214 204 186 186 196 160
+            C230 128 330 132 418 188 Z"/>
+          <g class="joint head" style="transform: translate(628px, 186px) rotate(var(--head-r))">
             <g class="look">
-              <path class="ink" d="M-28 28 C-48 4 -46 -52 2 -72 C52 -92 118 -62 132 -12 C142 24 108 58 58 54 C16 50 -8 44 -28 28 Z"/>
-              <g class="joint ear" style="transform: translate(-8px, -62px) rotate(var(--ear-r))">
+              <path class="ink" d="M-28 62
+                C-40 22 -22 -28 28 -58
+                C78 -88 150 -70 198 -22
+                C214 -4 206 16 176 22
+                C150 10 118 14 86 28
+                C48 20 8 40 -28 62 Z"/>
+              <path class="cut" d="M150 8 C168 2 188 10 194 20 C176 16 158 14 150 20 Z"/>
+              <g class="joint ear" style="transform: translate(18px, -48px) rotate(var(--ear-r))">
                 <g class="twitch">
-                  <path class="ink" d="M8 16 C-22 8 -36 -34 -10 -54 C14 -62 32 -30 22 2 C18 12 12 16 8 16 Z"/>
-                  <path class="cut" d="M2 4 C-10 -2 -14 -22 -2 -32 C8 -24 14 -8 8 2 Z"/>
+                  <path class="ink" d="M8 8 C-6 0 -18 -8 -8 -36 C2 -52 28 -40 24 -8 C22 8 14 14 8 8 Z"/>
+                  <path class="cut" d="M8 -4 C0 -8 -4 -22 2 -32 C12 -24 16 -8 10 -2 Z"/>
                 </g>
               </g>
-              <g class="eye" transform="translate(46 -16)">
-                <ellipse class="cut" cx="0" cy="0" rx="9" ry="5.5"/>
-                <ellipse class="ink lid" cx="0" cy="0" rx="10.5" ry="6.5"/>
+              <g class="eye" transform="translate(96 -16)">
+                <path class="cut" d="M-12 2 C-8 -6 8 -7 14 -1 C8 4 -6 6 -12 2 Z"/>
+                <ellipse class="ink lid" cx="0" cy="0" rx="15" ry="8"/>
               </g>
               <g class="zs">
-                <path class="z z1" d="M86 -46 H108 L86 -26 H108"/>
-                <path class="z z2" d="M114 -74 H130 L114 -60 H130"/>
+                <path class="z z1" d="M176 -40 H206 L176 -14 H206"/>
+                <path class="z z2" d="M214 -70 H236 L214 -50 H236"/>
               </g>
             </g>
           </g>
         </g>
       </g>
 
-      <g class="joint hind near" style="transform: translate(228px, 276px) rotate(var(--hind-r))">
-        <path class="ink" d="M-16 -24 C-34 22 -26 78 -4 108 L34 96 C16 56 4 12 12 -20 Z"/>
-        <g class="joint knee" style="transform: translate(14px, 100px) rotate(var(--hind-knee))">
-          <path class="ink" d="M-12 0 C-8 40 0 86 10 124 L36 114 C24 70 12 32 10 0 Z"/>
-          <ellipse class="ink" cx="26" cy="130" rx="24" ry="13"/>
+      <g class="joint hind near" style="transform: translate(268px, 255px) rotate(var(--hind-r))">
+        <path class="ink" d="M26 -40 C-8 20 -16 88 10 150 L52 134 C26 74 18 12 44 -32 Z"/>
+        <g class="joint knee" style="transform: translate(28px, 136px) rotate(var(--hind-knee))">
+          <path class="ink" d="M-6 0 C4 44 18 100 34 156 L58 144 C40 86 20 36 14 0 Z"/>
+          <path class="ink" d="M22 148 C16 170 36 186 62 176 C58 160 46 150 36 148 Z"/>
+          <path class="cut" d="M36 168 L42 178 L50 168"/>
         </g>
       </g>
 
-      <g class="joint fore near" style="transform: translate(418px, 272px) rotate(var(--fore-r))">
-        <path class="ink" d="M-14 -18 C-26 28 -14 78 2 110 L32 98 C18 58 8 20 14 -14 Z"/>
-        <g class="joint knee" style="transform: translate(16px, 102px) rotate(var(--fore-knee))">
-          <path class="ink" d="M-10 0 C-6 36 0 76 8 114 L30 104 C20 62 10 28 8 0 Z"/>
-          <ellipse class="ink" cx="22" cy="120" rx="20" ry="12"/>
+      <g class="joint fore near" style="transform: translate(545px, 268px) rotate(var(--fore-r))">
+        <path class="ink" d="M-4 -52 C-18 20 -10 120 8 214 L48 202 C32 104 20 12 28 -46 Z"/>
+        <g class="joint knee" style="transform: translate(24px, 202px) rotate(var(--fore-knee))">
+          <path class="ink" d="M-6 0 C2 30 12 70 18 104 L40 96 C28 58 16 22 12 0 Z"/>
+          <path class="ink" d="M10 98 C6 118 24 132 46 124 C44 110 32 102 22 98 Z"/>
+          <path class="cut" d="M22 116 L28 126 L36 116"/>
         </g>
       </g>
     </g>

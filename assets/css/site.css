@@ -176,9 +176,9 @@ a {
   position: relative;
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(220px, 0.85fr);
+  grid-template-columns: minmax(0, 1.45fr) minmax(180px, 0.7fr);
   grid-template-rows: 1fr auto;
-  align-items: center;
+  align-items: start;
   column-gap: 2vw;
   min-height: 0;
   padding: 0.25rem 4vw 0;
@@ -206,23 +206,26 @@ a {
   z-index: 4;
   grid-column: 1;
   grid-row: 1;
-  max-width: 16em;
-  padding: 1.5rem 0 2rem;
+  max-width: none;
+  padding: 1.25rem 2vw 1.5rem 0;
 }
 
 .hero h1 {
   margin: 0;
+  max-width: 14em;
   font-family: var(--serif);
   font-weight: 560;
-  font-size: clamp(2.35rem, 4.6vw, 4.15rem);
-  line-height: 0.98;
+  font-size: clamp(2.55rem, 3.7vw, 4.05rem);
+  line-height: 1.02;
   letter-spacing: -0.035em;
+  text-wrap: balance;
 }
 
 .earth-wrap {
   grid-column: 2;
   grid-row: 1;
   justify-self: end;
+  align-self: center;
   width: min(28vw, 280px);
   aspect-ratio: 1;
   z-index: 1;
@@ -243,7 +246,7 @@ a {
 .lunar--hero {
   grid-column: 1 / -1;
   grid-row: 2;
-  height: clamp(240px, 36vh, 420px);
+  height: clamp(150px, 20vh, 220px);
 }
 
 .lunar--footer {
@@ -273,26 +276,24 @@ a {
 }
 
 .crater-pit {
-  fill: #121826;
-  opacity: 0.82;
+  fill: #1c2433;
 }
 
 .crater-lip {
   fill: #fff;
-  opacity: 0.16;
-  transform: translate(calc(var(--shadow-x) * -0.45), calc(var(--shadow-y) * -0.45));
+  opacity: 0.14;
+  transform: translate(calc(var(--shadow-x) * -0.25), calc(var(--shadow-y) * -0.2));
 }
 
 .crater-shadow {
   fill: #070b14;
-  opacity: 0.55;
-  transform: translate(var(--shadow-x), var(--shadow-y));
+  transform: translate(calc(var(--shadow-x) * 0.35), calc(var(--shadow-y) * 0.25));
 }
 
 .dog-stage {
   position: absolute;
-  width: min(38vw, 390px);
-  aspect-ratio: 640 / 500;
+  width: min(42vw, 480px);
+  aspect-ratio: 900 / 620;
   pointer-events: none;
   z-index: 3;
   transform-origin: 58% 92%;
@@ -310,8 +311,8 @@ a {
   --body-y: 0px;
   --body-r: 0deg;
   --head-r: -8deg;
-  --ear-r: 0deg;
-  --tail-r: -16deg;
+  --ear-r: 8deg;
+  --tail-r: -4deg;
   --fore-r: 1deg;
   --fore-knee: 2deg;
   --fore-far-r: -3deg;
@@ -634,13 +635,18 @@ a {
     z-index: 0;
   }
 
+  .hero h1 {
+    max-width: 11em;
+    font-size: clamp(2rem, 8.2vw, 2.7rem);
+  }
+
   .lunar--hero {
     margin-top: auto;
-    height: clamp(230px, 58vw, 340px);
+    height: clamp(150px, 36vw, 210px);
   }
 
   .dog-stage {
-    width: min(78vw, 340px);
+    width: min(86vw, 360px);
   }
 
   .sky {

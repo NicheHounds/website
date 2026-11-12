@@ -336,13 +336,11 @@ function setupDog(root) {
   }, 400);
 }
 
-function horizonY(width, x) {
-  const radius = width * 1.05;
+function horizonY(width, x, sag) {
+  const radius = (width * width) / (8 * sag);
   const cx = width / 2;
-  const crest = Math.min(width * 0.16, 150);
-  const cy = crest + radius;
   const dx = x - cx;
-  return cy - Math.sqrt(Math.max(0, radius * radius - dx * dx));
+  return radius - Math.sqrt(Math.max(0, radius * radius - dx * dx));
 }
 
 function layoutHorizons() {
@@ -353,9 +351,11 @@ function layoutHorizons() {
     const height = Math.max(160, horizon.clientHeight);
     svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
     svg.setAttribute("preserveAspectRatio", "none");
-    const crest = horizonY(width, width / 2);
-    const lift = height * 0.12;
-    const point = (x) => horizonY(width, x) - crest + lift;
+    const hero = document.querySelector(".hero");
+    const heroH = hero ? hero.clientHeight : Math.max(height * 3, 640);
+    const sag = Math.max(18, Math.min(heroH * 0.08, width * 0.055, height * 0.42));
+    const lift = Math.max(18, height * 0.16);
+    const point = (x) => horizonY(width, x, sag) + lift;
     const samples = 56;
     let curve = "";
     for (let i = 0; i <= samples; i += 1) {
@@ -369,39 +369,50 @@ function layoutHorizons() {
     const craters = svg.querySelector(".craters");
     if (craters) {
       craters.replaceChildren();
-      const spots = [0.16, 0.3, 0.46, 0.58, 0.72, 0.84, 0.38];
-      const sizes = [16, 30, 48, 20, 26, 14, 12];
-      const ellipse = (cls, rx, ry) => {
+      const spots = [
+        { t: 0.14, rx: 26, depth: 0.22 },
+        { t: 0.28, rx: 18, depth: 0.16 },
+        { t: 0.41, rx: 54, depth: 0.28 },
+        { t: 0.55, rx: 14, depth: 0.14 },
+        { t: 0.67, rx: 32, depth: 0.2 },
+        { t: 0.8, rx: 22, depth: 0.18 },
+        { t: 0.9, rx: 12, depth: 0.12 }
+      ];
+      const ellipse = (cls, rx, ry, opacity) => {
         const node = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
         node.setAttribute("class", cls);
         node.setAttribute("rx", String(rx));
         node.setAttribute("ry", String(ry));
+        if (opacity != null) node.setAttribute("opacity", String(opacity));
         return node;
       };
-      spots.forEach((t, index) => {
-        const x = width * t;
-        const y = point(x) + sizes[index] * 0.9;
+      spots.forEach((spot) => {
+        const x = width * spot.t;
+        const ry = Math.max(4, spot.rx * 0.32);
+        const y = point(x) + ry + 10 + spot.rx * 0.15;
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
         g.setAttribute("class", "crater");
         g.setAttribute("transform", `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
-        const rx = sizes[index];
-        const ry = rx * 0.58;
-        g.append(ellipse("crater-lip", rx + 5, ry + 3), ellipse("crater-pit", rx, ry), ellipse("crater-shadow", rx, ry));
+        g.append(
+          ellipse("crater-lip", spot.rx + 6, ry + 3, 0.35),
+          ellipse("crater-pit", spot.rx, ry, spot.depth),
+          ellipse("crater-shadow", spot.rx * 0.72, ry * 0.7, spot.depth * 0.8)
+        );
         craters.appendChild(g);
       });
     }
     const dog = horizon.querySelector("[data-dog]");
     if (dog) {
-      const footT = width < 720 ? 0.5 : 0.46;
+      const footT = width < 720 ? 0.48 : 0.46;
       const x = width * footT;
-      const y = point(x);
-      const x2 = x + 28;
-      const y2 = point(x2);
+      const y = point(x) + 2;
+      const x2 = x + 40;
+      const y2 = point(x2) + 2;
       const angle = Math.atan2(y2 - y, x2 - x) * 180 / Math.PI;
       dog.style.left = `${x}px`;
       dog.style.top = `${y}px`;
-      dog.style.transformOrigin = "64% 100%";
-      dog.style.transform = `translate(-64%, -100%) rotate(${angle.toFixed(2)}deg)`;
+      dog.style.transformOrigin = "58% 96%";
+      dog.style.transform = `translate(-58%, -96%) rotate(${angle.toFixed(2)}deg)`;
     }
   });
 }
