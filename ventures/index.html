@@ -1,0 +1,26 @@
+---
+layout: default
+title: Ventures
+show_title: true
+description: Ventures.
+permalink: /ventures/
+---
+
+<!-- DRAFT: placeholder copy. No ventures are published yet. -->
+
+{% if site.ventures.size == 0 %}
+<p class="lede">No ventures are listed yet.</p>
+{% else %}
+<ul class="venture-grid">
+  {% for venture in site.ventures %}
+  <li class="card">
+    {% include venture-logo.html src=venture.logo alt=venture.logo_alt %}
+    <h2 class="card__title"><a class="card__link" href="{{ venture.url | relative_url }}">{{ venture.title | escape }}</a></h2>
+    {% if venture.description != blank %}
+    <p class="card__desc">{{ venture.description | escape }}</p>
+    {% endif %}
+    {% include ext-link.html url=venture.website_url label=venture.button_label %}
+  </li>
+  {% endfor %}
+</ul>
+{% endif %}

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if page.title and page.title != "" %}
+  <title>{{ page.title | escape }} · {{ site.title | escape }}</title>
+  {% else %}
+  <title>{{ site.title | escape }}</title>
+  {% endif %}
+  <meta name="description" content="{{ page.description | default: site.description | escape }}">
+  <meta name="theme-color" content="#121826">
+  <link rel="icon" href="{{ '/assets/img/niche-hounds-mark-v4-white-on-navy.svg' | relative_url }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  {% include header.html %}
+  <main id="content" class="{% if page.hero %}main--hero{% else %}main--page{% endif %}">
+    {% if page.show_title %}
+    <h1 class="page-title">{{ page.title | escape }}</h1>
+    {% endif %}
+    {{ content }}
+  </main>
+  {% include footer.html %}
+  <script type="module" src="{{ '/assets/js/scene.js' | relative_url }}"></script>
+</body>
+</html>

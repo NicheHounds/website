@@ -1,0 +1,11 @@
+{% assign src = include.src %}
+{% if src != blank %}
+<div class="logo-box{% if include.large %} logo-box--large{% endif %}">
+  {% if src contains "://" %}
+    {% assign href = src %}
+  {% else %}
+    {% assign href = src | relative_url %}
+  {% endif %}
+  <img src="{{ href | escape }}" alt="{{ include.alt | escape }}">
+</div>
+{% endif %}

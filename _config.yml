@@ -1,0 +1,32 @@
+title: Niche Hounds
+description: Serve the niche. Create value, or kill the idea fast.
+url: "https://nichehounds.github.io"
+# Project site for now. Set this to "" when nichehounds.com is pointed at the
+# site root. Every internal link uses the relative_url filter, so that is the
+# only change required. Do not add a CNAME.
+baseurl: "/website"
+permalink: pretty
+markdown: kramdown
+
+collections:
+  ventures:
+    output: true
+    permalink: /ventures/:name/
+
+defaults:
+  - scope:
+      path: ""
+      type: ventures
+    values:
+      layout: venture
+      button_label: Visit site
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - vendor
+  - .bundle
+  - .github
+  - .ruby-version
+  - node_modules
