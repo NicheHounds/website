@@ -12,10 +12,11 @@
   <link rel="icon" href="{{ '/assets/img/niche-hounds-mark-v4-white-on-navy.svg' | relative_url }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
 </head>
-<body>
+<body{% if page.hero %} class="has-hero"{% endif %}>
   <a class="skip" href="#content">Skip to content</a>
   {% include header.html %}
   <main id="content">
+    {% if page.hero %}{% include hero.html %}{% endif %}
     {% if page.show_title %}
     <h1>{{ page.title | escape }}</h1>
     {% endif %}

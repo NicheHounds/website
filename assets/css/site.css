@@ -199,3 +199,161 @@ p {
 .venture .button {
   margin-top: 0.5rem;
 }
+
+/* Home hero: the mark come to life ----------------------------------- */
+
+:root {
+  --navy: #121826;
+  --cream: #f5f3ee;
+}
+
+.has-hero main {
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.has-hero .site-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  border-bottom: 0;
+  color: var(--cream);
+  padding: 1.1rem clamp(1rem, 4vw, 3rem);
+}
+
+.has-hero .site-header :focus-visible,
+.hero :focus-visible {
+  outline-color: var(--cream);
+}
+
+.has-hero .skip {
+  background: var(--cream);
+  color: var(--navy);
+}
+
+.hero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 600px;
+  max-height: 1100px;
+  overflow: hidden;
+  background: var(--navy);
+  color: var(--cream);
+  isolation: isolate;
+}
+
+.hero-scene,
+.hero-scene > * {
+  position: absolute;
+}
+
+.hero-scene {
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.hero-stars,
+.hero-moon {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-stars {
+  fill: var(--cream);
+}
+
+.hero-stars .tw {
+  animation: twinkle 6s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 0.15; }
+}
+
+.hero-logo-stars {
+  height: auto;
+  fill: var(--cream);
+}
+
+.hero-earth {
+  display: block;
+}
+
+.hero-hound {
+  overflow: visible;
+}
+
+.hero-hound .hound-back { fill: var(--navy); }
+.hero-hound .hound-art,
+.hero-hound .hound-lid-coat { fill: var(--cream); }
+.hero-hound .hound-lid-line {
+  fill: none;
+  stroke: var(--navy);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.hero-hound .hound-shadow {
+  fill: var(--navy);
+  opacity: 0.38;
+}
+
+/* Until the script has placed things, keep the art out of the way. */
+.hero:not(.is-live) .hero-scene { visibility: hidden; }
+
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 36rem;
+  padding: clamp(7rem, 22vh, 13rem) clamp(1rem, 6vw, 5rem) 0;
+}
+
+.hero-copy h1 {
+  margin: 0 0 1rem;
+  max-width: 6.6em;
+  font-size: clamp(2.6rem, 5.4vw, 4.8rem);
+  text-wrap: balance;
+  font-weight: 750;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+}
+
+.hero-sub {
+  margin: 0;
+  max-width: 22ch;
+  text-wrap: balance;
+  font-size: clamp(1.15rem, 1.9vw, 1.55rem);
+  line-height: 1.35;
+  opacity: 0.86;
+}
+
+@media (max-width: 719px) {
+  .hero {
+    min-height: 640px;
+  }
+
+  .has-hero .site-header {
+    padding: 0.9rem 1rem;
+  }
+
+  .hero-copy {
+    padding-top: 9.5rem;
+  }
+
+  /* Earth sits behind the words on a phone. */
+  .hero-copy h1,
+  .hero-sub {
+    text-shadow: 0 1px 2px rgba(18, 24, 38, 0.9), 0 0 22px rgba(18, 24, 38, 0.85);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-stars .tw { animation: none; }
+}

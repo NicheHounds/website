@@ -23,7 +23,7 @@ Set `baseurl` to `""` in `_config.yml`. Internal links use the `relative_url` fi
 
 | Path | What it is |
 | --- | --- |
-| `/` | Placeholder home page. |
+| `/` | Home: the hero (placeholder copy). |
 | `/about/` | Placeholder. |
 | `/team/` | Placeholder. No names. |
 | `/ventures/` | Lists the ventures collection. |
@@ -49,6 +49,50 @@ Front matter:
 The card links to the venture page. The website button is a separate link (`target="_blank"` and `rel="noopener"`) and does not trigger the card link.
 
 Anything after the front matter is optional Markdown and appears on the venture page under the summary.
+
+## The home hero
+
+The hero is the logo come to life: the hound on a cratered moon, two stars, and Earth. All of it runs in the browser from files in this repo. Nothing is fetched from a third party, there are no trackers, and the visitor is never asked for their location.
+
+| File | What it does |
+| --- | --- |
+| `_includes/hero.html` | Hero markup and copy. Included by `index.html` (`hero: true`). |
+| `assets/js/hero.js` | Lays out the scene for the viewport and starts each part. |
+| `assets/js/hound.js` | Poses and animates the hound. |
+| `assets/js/hound-rig.js` | The logo's hound artwork cut at its joints. Generated; see below. |
+| `assets/js/earth.js` | Draws Earth into a canvas with live day and night. |
+| `assets/js/moon.js` | Draws the curved, cratered lunar surface and its light. |
+| `assets/js/astro.js` | Sun position, moon phase, and location from the time zone. |
+
+**Location.** Approximate latitude and longitude come only from the browser's time zone (`Intl`), via a lookup table of time zones. No Geolocation API, no IP lookup.
+
+**Earth.** Centred on that location, with the real day/night terminator for the current time and city lights on the night side. It refreshes once a minute.
+
+**Moon.** The lit share of the surface is the moon's real illuminated fraction right now, lit from the right while waxing and from the left while waning (mirrored south of the equator). Crater shadows lengthen toward the terminator. The colour of the light follows the visitor's local time of day: warm at dawn and dusk, cool at night. At new moon the surface is lit only by earthshine.
+
+**Hound.** The hound is the mark's own artwork, cut into head, neck, torso, tail and jointed legs, and posed by turning those pieces. After about 9 s without pointer, touch, key, wheel or scroll activity it sits, after about 22 s it lies down, and after about 40 s it sleeps. Any activity wakes it to standing. It breathes, blinks and wags while awake. With `prefers-reduced-motion`, poses change without animation and the breathing, wagging, blinking and star twinkle are off.
+
+**Earth imagery** in `assets/img/earth/` is NASA, public domain (U.S. government work): `day.jpg` (Blue Marble land, ocean and ice), `night.jpg` (City Lights 2012), `clouds.jpg` (Blue Marble clouds).
+
+### Preview parameters
+
+These only change what the page shows for that visit:
+
+- `?at=2026-11-24T12:00` sets the clock (local time in the visitor's or `tz`'s zone).
+- `?tz=Asia/Tokyo` previews another time zone; `?lat=40.7&lon=-74` sets a location directly.
+- `?dog=sitting` holds a pose: `standing`, `sitting`, `lying` or `sleeping`.
+- `?idle=10` makes the idle timers 10× faster.
+
+### Regenerating the hound rig
+
+Only needed if the mark's artwork changes. From the repo root, with Node + Playwright and Python (`numpy scipy pillow potracer`):
+
+```sh
+node tools/hound-rig/render.js
+python3 tools/hound-rig/build.py
+```
+
+`tools/hound-rig/pieces.json` holds the cut lines, joint pivots and joint overlaps, in the coordinates of the 3200 px render.
 
 ## Deploy
 
