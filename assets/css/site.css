@@ -292,11 +292,10 @@ a {
 
 .dog-stage {
   position: absolute;
-  width: min(42vw, 480px);
-  aspect-ratio: 900 / 620;
+  width: min(40vw, 460px);
+  aspect-ratio: 1080 / 1140;
   pointer-events: none;
   z-index: 3;
-  transform-origin: 58% 92%;
 }
 
 .hound-svg {
@@ -308,106 +307,74 @@ a {
 }
 
 .hound {
-  --body-y: 0px;
-  --body-r: 0deg;
-  --head-r: -8deg;
-  --ear-r: 8deg;
-  --tail-r: -4deg;
-  --fore-r: 1deg;
-  --fore-knee: 2deg;
-  --fore-far-r: -3deg;
-  --fore-knee-far: 4deg;
-  --hind-r: 2deg;
-  --hind-knee: 8deg;
-  --hind-far-r: 6deg;
-  --hind-knee-far: 10deg;
+  --crouch: 1;
+  --head: 0deg;
 }
 
-.dog-stage[data-state="sitting"] .hound {
-  --body-y: 8px;
-  --body-r: -3deg;
-  --head-r: 6deg;
-  --tail-r: 12deg;
-  --fore-r: 4deg;
-  --fore-knee: 6deg;
-  --fore-far-r: 2deg;
-  --hind-r: -36deg;
-  --hind-knee: 58deg;
-  --hind-far-r: -30deg;
-  --hind-knee-far: 50deg;
-}
-
-.dog-stage[data-state="lying"] .hound {
-  --body-y: 16px;
-  --body-r: 2deg;
-  --head-r: 2deg;
-  --tail-r: 4deg;
-  --fore-r: -42deg;
-  --fore-knee: 18deg;
-  --fore-far-r: -36deg;
-  --fore-knee-far: 16deg;
-  --hind-r: -22deg;
-  --hind-knee: 36deg;
-  --hind-far-r: -16deg;
-  --hind-knee-far: 30deg;
-}
-
-.dog-stage[data-state="sleeping"] .hound {
-  --body-y: 18px;
-  --body-r: 3deg;
-  --head-r: 22deg;
-  --ear-r: 8deg;
-  --tail-r: 0deg;
-  --fore-r: -38deg;
-  --fore-knee: 14deg;
-  --fore-far-r: -32deg;
-  --fore-knee-far: 12deg;
-  --hind-r: -24deg;
-  --hind-knee: 34deg;
-  --hind-far-r: -18deg;
-  --hind-knee-far: 28deg;
-}
-
-.joint {
-  transition: transform 0.85s cubic-bezier(0.45, 0.05, 0.2, 1);
-}
+.dog-stage[data-state="sitting"] .hound { --head: -7deg; }
+.dog-stage[data-state="lying"] .hound { --crouch: 0.68; --head: -9deg; }
+.dog-stage[data-state="sleeping"] .hound { --crouch: 0.62; --head: -9deg; }
 
 .ink { fill: var(--hound, #f5f3ee); }
-.cut { fill: #121826; }
 
-.breath {
-  transform-origin: 0 20px;
-  animation: breath 3.6s ease-in-out infinite;
+.posture,
+.head {
+  transform-box: view-box;
+  transition: transform 1.15s cubic-bezier(0.45, 0.05, 0.2, 1);
+}
+
+.posture {
+  transform-origin: 1100px 1762px;
+  transform: scale(1, var(--crouch));
+}
+
+.head,
+.look {
+  transform-origin: 1500px 990px;
+}
+
+.head { transform: rotate(var(--head)); }
+
+.look {
+  transform-box: view-box;
+  animation: look 9s ease-in-out infinite;
+}
+
+.chest,
+.wag,
+.ear {
+  transform-box: view-box;
+}
+
+.chest {
+  transform-origin: 1400px 1100px;
+  animation: breath 4s ease-in-out infinite;
 }
 
 .wag {
-  transform-origin: 8px 8px;
-  animation: wag 1.15s ease-in-out infinite;
+  transform-origin: 1140px 1210px;
+  animation: wag 2.6s ease-in-out infinite;
 }
 
-.twitch {
-  transform-origin: 4px 8px;
-  animation: twitch 5.5s ease-in-out infinite;
-}
-
-.look {
-  transform-origin: 10px 10px;
-  animation: look 8s ease-in-out infinite;
+.ear {
+  transform-origin: 1520px 820px;
+  animation: twitch 6.8s ease-in-out infinite;
 }
 
 .lid {
+  fill: var(--hound, #f5f3ee);
   transform-box: fill-box;
   transform-origin: center;
-  animation: blink 5.8s infinite;
+  animation: blink 6.2s infinite;
 }
 
-.dog-stage[data-state="sitting"] .wag { animation-duration: 1.8s; }
-.dog-stage[data-state="lying"] .wag { animation-duration: 2.6s; animation-timing-function: ease-in-out; }
+.dog-stage[data-state="sitting"] .wag { animation-duration: 3.4s; }
+.dog-stage[data-state="lying"] .wag,
 .dog-stage[data-state="sleeping"] .wag,
-.dog-stage[data-state="sleeping"] .twitch,
+.dog-stage[data-state="sleeping"] .ear,
 .dog-stage[data-state="sleeping"] .look,
 .dog-stage[data-state="sleeping"] .lid { animation: none; }
-.dog-stage[data-state="sleeping"] .breath { animation-duration: 5.4s; }
+.dog-stage[data-state="sleeping"] .chest { animation-duration: 5.8s; }
 .dog-stage[data-state="sleeping"] .lid { transform: scaleY(1); }
 
 .zs { opacity: 0; }
@@ -424,26 +391,25 @@ a {
 
 @keyframes breath {
   0%, 100% { transform: scale(1, 1); }
-  50% { transform: scale(1.015, 1.035); }
+  50% { transform: scale(1, 1.018); }
 }
 @keyframes wag {
-  0%, 100% { transform: rotate(-7deg); }
-  50% { transform: rotate(12deg); }
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(5deg); }
 }
 @keyframes twitch {
-  0%, 72%, 100% { transform: rotate(0deg); }
-  78% { transform: rotate(-14deg); }
-  84% { transform: rotate(6deg); }
-  90% { transform: rotate(0deg); }
+  0%, 80%, 100% { transform: rotate(0deg); }
+  86% { transform: rotate(-7deg); }
+  92% { transform: rotate(2deg); }
 }
 @keyframes look {
-  0%, 18%, 100% { transform: rotate(0deg); }
-  28%, 46% { transform: rotate(-7deg); }
-  58%, 78% { transform: rotate(5deg); }
+  0%, 22%, 100% { transform: rotate(0deg); }
+  34%, 48% { transform: rotate(-4deg); }
+  62%, 76% { transform: rotate(3deg); }
 }
 @keyframes blink {
-  0%, 46%, 52%, 100% { transform: scaleY(0.05); }
-  49% { transform: scaleY(1); }
+  0%, 46%, 54%, 100% { transform: scaleY(0); }
+  50% { transform: scaleY(1); }
 }
 @keyframes drift {
   0% { opacity: 0; transform: translate(0, 6px); }
@@ -646,7 +612,7 @@ a {
   }
 
   .dog-stage {
-    width: min(86vw, 360px);
+    width: min(82vw, 340px);
   }
 
   .sky {
@@ -669,11 +635,12 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .joint,
-  .breath,
-  .wag,
-  .twitch,
+  .posture,
+  .head,
   .look,
+  .chest,
+  .wag,
+  .ear,
   .lid,
   .z,
   .zs {

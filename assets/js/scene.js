@@ -309,7 +309,7 @@ function setupDog(root) {
   if (scrub !== null && scrub !== "") {
     const ms = Number(scrub);
     if (Number.isFinite(ms)) {
-      root.querySelectorAll(".breath, .wag, .twitch, .look, .lid, .z").forEach((el) => {
+      root.querySelectorAll(".chest, .wag, .ear, .look, .lid, .z").forEach((el) => {
         el.style.animationDelay = `-${ms}ms`;
       });
     }
@@ -411,8 +411,8 @@ function layoutHorizons() {
       const angle = Math.atan2(y2 - y, x2 - x) * 180 / Math.PI;
       dog.style.left = `${x}px`;
       dog.style.top = `${y}px`;
-      dog.style.transformOrigin = "58% 96%";
-      dog.style.transform = `translate(-58%, -96%) rotate(${angle.toFixed(2)}deg)`;
+      dog.style.transformOrigin = "37% 97%";
+      dog.style.transform = `translate(-37%, -97%) rotate(${angle.toFixed(2)}deg)`;
     }
   });
 }
