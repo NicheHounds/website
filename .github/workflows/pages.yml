@@ -3,6 +3,7 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -11,7 +12,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -23,7 +24,9 @@ jobs:
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.2.3"
+          # ubuntu-latest only ships the newest patch of each Ruby series.
+          # "3.2" selects that patch (3.2.11 on ubuntu-26.04). 3.2.3 404s.
+          ruby-version: "3.2"
           bundler-cache: true
       - name: Build
         run: bundle exec jekyll build
@@ -35,6 +38,7 @@ jobs:
           path: _site
 
   deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:
