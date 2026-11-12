@@ -1,0 +1,61 @@
+<div class="lunar lunar--{{ include.id }}">
+  <div class="lunar-clip">
+    <svg class="lunar-svg" viewBox="0 0 1440 480" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="shade-{{ include.id }}" class="phase-gradient" x1="0" y1="0.5" x2="1" y2="0.5">
+          <stop class="shade-a" offset="0" stop-color="#070b14" stop-opacity="0.55"/>
+          <stop class="shade-b" offset="0.48" stop-color="#070b14" stop-opacity="0"/>
+          <stop class="shade-c" offset="1" stop-color="#070b14" stop-opacity="0"/>
+        </linearGradient>
+        <clipPath id="ground-{{ include.id }}">
+          <path d="M-80 268 C 140 168 360 96 720 128 C 1100 162 1280 78 1560 220 L 1560 500 L -80 500 Z"/>
+        </clipPath>
+      </defs>
+      <g clip-path="url(#ground-{{ include.id }})">
+        <rect class="ground" x="-80" y="0" width="1720" height="520"/>
+        <ellipse class="glow" cx="640" cy="168" rx="560" ry="64"/>
+        <g class="craters">
+          <g class="crater" transform="translate(430 310)">
+            <ellipse class="crater-lip" rx="54" ry="28"/>
+            <ellipse class="crater-pit" rx="46" ry="24"/>
+            <ellipse class="crater-shadow" rx="46" ry="24"/>
+          </g>
+          <g class="crater" transform="translate(690 360)">
+            <ellipse class="crater-lip" rx="86" ry="40"/>
+            <ellipse class="crater-pit" rx="74" ry="34"/>
+            <ellipse class="crater-shadow" rx="74" ry="34"/>
+          </g>
+          <g class="crater" transform="translate(980 300)">
+            <ellipse class="crater-lip" rx="36" ry="20"/>
+            <ellipse class="crater-pit" rx="30" ry="16"/>
+            <ellipse class="crater-shadow" rx="30" ry="16"/>
+          </g>
+          <g class="crater" transform="translate(210 340)">
+            <ellipse class="crater-lip" rx="28" ry="16"/>
+            <ellipse class="crater-pit" rx="22" ry="12"/>
+            <ellipse class="crater-shadow" rx="22" ry="12"/>
+          </g>
+          <g class="crater" transform="translate(1180 340)">
+            <ellipse class="crater-lip" rx="48" ry="24"/>
+            <ellipse class="crater-pit" rx="40" ry="20"/>
+            <ellipse class="crater-shadow" rx="40" ry="20"/>
+          </g>
+          <g class="crater" transform="translate(840 250)">
+            <ellipse class="crater-lip" rx="22" ry="12"/>
+            <ellipse class="crater-pit" rx="16" ry="9"/>
+            <ellipse class="crater-shadow" rx="16" ry="9"/>
+          </g>
+          <g class="crater" transform="translate(560 400)">
+            <ellipse class="crater-lip" rx="30" ry="16"/>
+            <ellipse class="crater-pit" rx="24" ry="12"/>
+            <ellipse class="crater-shadow" rx="24" ry="12"/>
+          </g>
+        </g>
+        <rect class="phase-shade" x="-200" y="0" width="2000" height="520" fill="url(#shade-{{ include.id }})"/>
+      </g>
+    </svg>
+  </div>
+  {% if include.dog %}
+  {% include dog.html %}
+  {% endif %}
+</div>

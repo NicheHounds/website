@@ -1,0 +1,17 @@
+---
+layout: default
+---
+<!-- DRAFT: venture page template. Copy is whatever the venture file contains. -->
+<article class="venture">
+  {% include venture-logo.html src=page.logo alt=page.logo_alt large=true %}
+  <h1 class="page-title">{{ page.title | escape }}</h1>
+  {% if page.description != blank %}
+  <p class="lede">{{ page.description | escape }}</p>
+  {% endif %}
+  {% if content != blank %}
+  <div class="venture-body">
+    {{ content }}
+  </div>
+  {% endif %}
+  {% include ext-link.html url=page.website_url label=page.button_label %}
+</article>

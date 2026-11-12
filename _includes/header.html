@@ -1,0 +1,12 @@
+<header class="site-header">
+  <a class="brand" href="{{ '/' | relative_url }}">
+    <img src="{{ '/assets/img/niche-hounds-mark-v4-white-on-navy.svg' | relative_url }}" width="48" height="48" alt="">
+    <span class="brand-name">Niche Hounds</span>
+  </a>
+  <nav class="nav" aria-label="Primary">
+    <a href="{{ '/' | relative_url }}"{% if page.url == "/" %} aria-current="page"{% endif %}>Home</a>
+    <a href="{{ '/about/' | relative_url }}"{% if page.url == "/about/" %} aria-current="page"{% endif %}>About</a>
+    <a href="{{ '/team/' | relative_url }}"{% if page.url == "/team/" %} aria-current="page"{% endif %}>Team</a>
+    <a href="{{ '/ventures/' | relative_url }}"{% if page.url == "/ventures/" or page.collection == "ventures" %} aria-current="page"{% endif %}>Ventures</a>
+  </nav>
+</header>

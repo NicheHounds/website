@@ -1,0 +1,7 @@
+{% capture url %}{{ include.url }}{% endcapture %}
+{% assign url = url | strip %}
+{% assign label = include.label | default: "Visit site" %}
+{% if label == "" %}{% assign label = "Visit site" %}{% endif %}
+{% if url != "" %}
+<a class="button" href="{{ url | escape }}" target="_blank" rel="noopener">{{ label | escape }}<span class="visually-hidden"> (opens in a new tab)</span></a>
+{% endif %}
