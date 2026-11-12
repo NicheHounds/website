@@ -50,6 +50,14 @@ The card links to the venture page. The website button is a separate link (`targ
 
 Anything after the front matter is optional Markdown and appears on the venture page under the summary.
 
+## Earth imagery
+
+The globe is drawn in the browser from files in `assets/img/earth/`. Nothing is fetched from a third party at runtime.
+
+- `day.jpg` — NASA Visible Earth Blue Marble land, ocean, and ice map. Public domain (U.S. government work). Source: Wikimedia Commons, File:Land_ocean_ice_2048.jpg.
+- `night.jpg` — NASA city lights, April–October 2012. Public domain. Source: Wikimedia Commons, File:City_Lights_2012_-_Flat_map.jpg.
+- `clouds.jpg` — NASA Blue Marble cloud map. Public domain. Softened slightly and stored locally.
+
 ## The scene
 
 The Earth, the lunar surface, and the hound are vanilla JavaScript in `assets/js`. Nothing is loaded from a third party.
