@@ -13,7 +13,7 @@ bundle exec jekyll serve
 
 Open `http://127.0.0.1:4000/website/`. The `baseurl` in `_config.yml` is `/website`, so asset and page links match the project-site path.
 
-Ruby 3.2.3 and Jekyll 4.3.4 are pinned in the `Gemfile`.
+Jekyll 4.3.4 is pinned in the `Gemfile`. Ruby is any 3.2 patch (`~> 3.2.0`). GitHub Actions installs the newest 3.2.x the runner provides (3.2.11 on the current image).
 
 ## Custom domain later
 
