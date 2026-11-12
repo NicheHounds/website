@@ -6,6 +6,7 @@ import { mountEarth } from './earth.js';
 import { moonPhase, solarAltitude, browserLocation, now } from './astro.js';
 import { drawMoon } from './moon.js';
 import { runHound } from './hound.js';
+import { start3D } from './hero3d.js';
 
 const hero = document.querySelector('.hero');
 if (hero) start(hero);
@@ -29,13 +30,38 @@ function start(hero) {
   shadow.setAttribute('ry', 13);
   houndSvg.appendChild(shadow);
 
+  mountEarth(earth, { textureBase: hero.dataset.textureBase });
+  let geo = null;
+  let clear = null;
+
+  // The 3D scene when the browser can run it; the illustrated hero otherwise.
+  let three = null;
+  if (params.get('flat') !== '1') {
+    try {
+      three = start3D(hero, {
+        canvas: $('.hero-lunar'),
+        logoSvg: houndSvg,
+        earthEl: earth,
+        reducedMotion,
+        params,
+        onLayout: layout3D,
+      });
+    } catch (err) {
+      console.warn('Niche Hounds hero: 3D scene unavailable, using the illustrated version.', err);
+      three = null;
+    }
+  }
+  if (three) {
+    shadow.remove();
+    hero.classList.add('is-3d', 'is-live');
+    return;
+  }
+
   runHound(houndSvg, {
     reducedMotion,
     hold: params.get('dog') || undefined,
     idleScale: Number(params.get('idle')) || 1,
   });
-
-  mountEarth(earth, { textureBase: hero.dataset.textureBase });
 
   let lastW = 0;
   let lastH = 0;
@@ -70,7 +96,24 @@ function start(hero) {
       height: `${545 * k}px`,
     });
 
-    // Earth: beside the tagline on desktop, behind it on a phone.
+    layoutSky(W, H, mobile);
+
+    drawStars(W, H, surfaceY);
+    paintMoon({ W, H, cx, cy, R }, [dogX - 330 * k, dogX + 330 * k]);
+  }
+
+  // Sky layout and a stand-in 2D moon while the 3D ground renders.
+  function layout3D({ W, H, horizonY, mobile }) {
+    layoutSky(W, H, mobile);
+    drawStars(W, H, horizonY);
+    const crestX = W * (mobile ? 0.62 : 0.68);
+    const crestY = horizonY(crestX);
+    const sag = Math.max(1, horizonY(0) - crestY);
+    const R = (crestX * crestX + sag * sag) / (2 * sag);
+    paintMoon({ W, H, cx: crestX, cy: crestY + R, R }, null);
+  }
+
+  function layoutSky(W, H, mobile) {
     const heroTop = hero.getBoundingClientRect().top;
     const textTop = hero.querySelector('.hero-copy h1').getBoundingClientRect().top - heroTop;
     const textBottom = hero.querySelector('.hero-sub').getBoundingClientRect().bottom - heroTop;
@@ -79,21 +122,14 @@ function start(hero) {
     const ex = mobile ? W * 0.72 : W * 0.755;
     const ey = mobile ? H * 0.31 : copyMid;
     Object.assign(earth.style, { width: `${D}px`, height: `${D}px`, left: `${ex - D / 2}px`, top: `${ey - D / 2}px` });
-
-    // The mark's two stars, up and to the left of Earth as in the logo.
     const s = mobile ? W * 0.2 : D * 0.62;
     Object.assign(logoStars.style, {
       width: `${s}px`,
       left: mobile ? `${W * 0.07}px` : `${ex - D / 2 - s * 0.95}px`,
       top: mobile ? `${H * 0.53}px` : `${Math.max(64, ey - D / 2 - s * 0.55)}px`,
     });
-
-    drawStars(W, H, surfaceY);
-    paintMoon({ W, H, cx, cy, R }, [dogX - 330 * k, dogX + 330 * k]);
   }
 
-  let geo = null;
-  let clear = null;
   function paintMoon(g, keep) {
     if (g) { geo = g; clear = keep; }
     if (!geo) return;
@@ -109,6 +145,7 @@ function start(hero) {
     hero.dataset.moon = `${Math.round(phase.illumination * 100)}% ${phase.waxing ? 'waxing' : 'waning'}`;
     // The hound's shadow falls away from the light.
     shadow.setAttribute('transform', `translate(${info.fromRight ? -26 : 26} 0)`);
+
   }
 
   function drawStars(W, H, surfaceY) {

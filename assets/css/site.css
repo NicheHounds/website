@@ -287,6 +287,27 @@ p {
   display: block;
 }
 
+/* The 3D ground fades in over the illustrated stand-in once it has rendered. */
+.hero-lunar {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+.hero-lunar.is-ready { opacity: 1; }
+.hero.ground-ready .hero-moon { opacity: 0; transition: opacity 0.9s ease 0.9s; }
+.hero.is-3d .hero-hound {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-lunar { transition: none; }
+}
+
 .hero-hound {
   overflow: visible;
 }

@@ -1,7 +1,18 @@
 /**
- * A realistic Earth with the live day/night terminator, drawn per pixel into a
- * <canvas>. Orthographic view centered on the visitor (from the time zone),
- * north up. No dependencies, no network beyond three same-origin textures.
+ * Earth as an astronaut on the Moon would see it: the live day/night
+ * terminator, city lights on the night side, sunlit clouds, a faint sun glint
+ * on the ocean and a thin blue limb. Drawn per pixel into a <canvas>, in an
+ * orthographic view centered on the visitor (from the time zone), north up.
+ * No dependencies, no network beyond three same-origin textures:
+ *
+ *   day.jpg     NASA Blue Marble: Next Generation, September 2004, with
+ *               topography and shallow water (public domain)
+ *   night.jpg   NASA Earth Observatory / Suomi NPP VIIRS "Earth at Night"
+ *               2012, reduced to the city lights alone (public domain)
+ *   clouds.jpg  Tom Patterson's fair-weather cloud map, shadedrelief.com,
+ *               built from NASA Blue Marble clouds (public domain)
+ *
+ * All three are 2048x1024 equirectangular, -180..180 deg from the left edge.
  *
  * The canvas must get its size from CSS; the backing store follows it at
  * devicePixelRatio (max 2).
@@ -9,17 +20,89 @@
 import { sunPosition, browserLocation, now } from './astro.js';
 
 const RAD = Math.PI / 180;
-const HALO = 0.075;           // atmosphere halo width, as a fraction of the radius
+const FRAME = 0.075;          // margin around the disk, as a fraction of its radius
+const GLOW = 0.04;            // how far the limb glow is drawn past the disk
 const REFRESH_MS = 60000;
 const RESIZE_DEBOUNCE_MS = 120;
-const STRIDE = 8;             // bytes per sample: day rgb, night rgb, cloud, ocean
+const STRIDE = 6;             // bytes per sample: day rgb, city lights, cloud, ocean
 const BAYER = [-0.375, 0.125, 0.375, -0.125];
+
+// Lighting is done in a gamma-2 "linear" space: square going in, sqrt going out.
+const LIN = Float32Array.from({ length: 256 }, (_, i) => (i / 255) ** 2);
+const EXPOSURE = 1.35;
+const CLOUD_ALBEDO = 0.78;
+const LIGHTS_GAIN = 1.4;
+const LIGHTS_TINT = [1, 0.72, 0.42];          // sodium and LED, seen from orbit
+const NIGHT_AMBIENT = [0.0007, 0.0010, 0.0018];   // a hint of moonlight on the night side
+const RAYLEIGH = [0.18, 0.42, 1.0];           // in-scattered sky light
+const SUNSET = [1.0, 0.52, 0.26];
 
 const clamp01 = (x) => (x < 0 ? 0 : x > 1 ? 1 : x);
 const smooth = (e0, e1, x) => {
   const t = clamp01((x - e0) / (e1 - e0));
   return t * t * (3 - 2 * t);
 };
+
+/* ------------------------------------------------------------------------ */
+/* Lookup tables, built once                                                 */
+/* ------------------------------------------------------------------------ */
+
+const MU_N = 2048;            // cos(solar zenith) in [-1, 1]
+const muIndex = (mu) => ((mu + 1) * ((MU_N - 1) / 2) + 0.5) | 0;
+
+/**
+ * Everything that depends only on the local sun elevation, per channel:
+ *   SUN    direct sunlight after the air mass (reddens toward the terminator)
+ *   GROUND light on the surface: direct, plus skylight, plus twilight
+ *   CLOUD  light on cloud tops, which see the sun a little longer
+ *   AIR    light scattered by the atmosphere toward the viewer
+ *   LIGHTS how much of the city lights show (only once the sun is down)
+ */
+const TABLES = (() => {
+  const SUN = new Float32Array(MU_N * 3);
+  const GROUND = new Float32Array(MU_N * 3);
+  const CLOUD = new Float32Array(MU_N * 3);
+  const AIR = new Float32Array(MU_N * 3);
+  const LIGHTS = new Float32Array(MU_N);
+  const K = [0.004, 0.012, 0.035];            // relative extinction per air mass, r g b
+  // Irradiance with a soft shoulder: an exposure set for the bright side
+  // keeps most of the disk lit, then drops off fast near the terminator.
+  const shoulder = (m) => (1 - Math.exp(-m / 0.16)) / (1 - Math.exp(-1 / 0.16));
+  const direct = (m, c) => (m <= 0 ? 0 : shoulder(m) * Math.exp(-K[c] * (1 / (m + 0.012) - 1 / 1.012)));
+  for (let i = 0; i < MU_N; i++) {
+    const m = (i / (MU_N - 1)) * 2 - 1;
+    const sky = 0.035 * smooth(-0.06, 0.5, m);
+    const dusk = 0.008 * smooth(-0.07, -0.005, m) * (1 - smooth(-0.005, 0.1, m));
+    const warm = Math.exp(-(((m - 0.01) / 0.09) ** 2));
+    const air = smooth(-0.09, 0.3, m);
+    for (let c = 0; c < 3; c++) {
+      SUN[i * 3 + c] = m > 0 ? direct(m, c) / m : 0;
+      GROUND[i * 3 + c] = direct(m, c) + sky * RAYLEIGH[c] + dusk * SUNSET[c];
+      const mc = m + 0.018;
+      CLOUD[i * 3 + c] = direct(mc, c) + 0.6 * sky * RAYLEIGH[c] + 1.5 * dusk * SUNSET[c];
+      AIR[i * 3 + c] = air * (RAYLEIGH[c] * (1 - 0.6 * warm) + SUNSET[c] * 0.45 * warm);
+    }
+    LIGHTS[i] = 1 - smooth(-0.07, 0.04, m);
+  }
+  return { SUN, GROUND, CLOUD, AIR, LIGHTS };
+})();
+
+/** Share of the view filled by sunlit air, by z = cos(view angle): 0.05 at center, ~0.6 at the limb. */
+const Z_N = 1024;
+const HAZE = Float32Array.from({ length: Z_N + 1 }, (_, i) => {
+  const z = i / Z_N;
+  return 0.05 + 0.95 * (1 - Math.exp(-0.045 * (1 / (z + 0.05) - 1 / 1.05)));
+});
+
+/** Cloud map value -> opacity. Thin cirrus stays translucent, thick decks go opaque. */
+const CLOUD_ALPHA = Float32Array.from({ length: 256 }, (_, i) => {
+  const v = i / 255;
+  return clamp01(1.12 * v ** 1.15);
+});
+
+/* ------------------------------------------------------------------------ */
+/* Textures                                                                  */
+/* ------------------------------------------------------------------------ */
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
@@ -31,66 +114,7 @@ function loadImage(src) {
   });
 }
 
-/** Fractal value noise in [0,1], tileable across the dateline, deterministic. */
-function cloudDetail(W, H) {
-  const out = new Float32Array(W * H);
-  let seed = 0x2f6b9a31;
-  const rand = () => (seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296;
-  let amp = 1;
-  let total = 0;
-  for (let gx = 36; gx <= 576; gx *= 2) {
-    const gy = gx / 2 + 1;
-    const grid = new Float32Array(gx * gy).map(rand);
-    for (let y = 0; y < H; y++) {
-      const fy = (y / H) * (gy - 1);
-      const iy = fy | 0;
-      let ty = fy - iy;
-      ty = ty * ty * (3 - 2 * ty);
-      const r0 = iy * gx;
-      const r1 = r0 + gx;
-      for (let x = 0; x < W; x++) {
-        const fx = (x / W) * gx;
-        const ix = fx | 0;
-        let tx = fx - ix;
-        tx = tx * tx * (3 - 2 * tx);
-        const ix1 = ix + 1 === gx ? 0 : ix + 1;
-        const top = grid[r0 + ix] + (grid[r0 + ix1] - grid[r0 + ix]) * tx;
-        const bot = grid[r1 + ix] + (grid[r1 + ix1] - grid[r1 + ix]) * tx;
-        out[y * W + x] += amp * (top + (bot - top) * ty);
-      }
-    }
-    total += amp;
-    amp *= 0.55;
-  }
-  for (let i = 0; i < out.length; i++) out[i] /= total;
-  return out;
-}
-
-/**
- * Red channel of an RGBA map, cross-faded over `band` texels on both sides of
- * the dateline so a map whose edges do not match still wraps without a seam.
- */
-function seamless(rgba, W, H, band) {
-  const out = new Uint8Array(W * H);
-  for (let i = 0; i < W * H; i++) out[i] = rgba[i * 4];
-  for (let y = 0; y < H; y++) {
-    const row = y * W;
-    for (let d = 0; d < band; d++) {
-      const l = row + d;
-      const r = row + W - 1 - d;
-      const mean = (out[l] + out[r]) / 2;
-      const t = 1 - (d + 0.5) / band;
-      out[l] += (mean - out[l]) * t;
-      out[r] += (mean - out[r]) * t;
-    }
-  }
-  return out;
-}
-
-/**
- * Pack the three equirectangular maps into one interleaved texture at the
- * day map's resolution, with the cloud curve, polar fade and ocean mask baked in.
- */
+/** Pack the three maps into one interleaved texture at the day map's resolution. */
 async function loadTextures(base) {
   const [day, night, clouds] = await Promise.all(
     ['day', 'night', 'clouds'].map((name) => loadImage(`${base}${name}.jpg`)),
@@ -110,36 +134,22 @@ async function loadTextures(base) {
   const n = read(night);
   const c = read(clouds);
 
-  // The source cloud map is blurry and harsh, with solid bands near the poles.
-  // Break it up with fractal detail, threshold it softly, and fade it out at
-  // high latitudes.
-  const detail = cloudDetail(W, H);
-  const cloudAt = seamless(c, W, H, 64);
-
   const tex = new Uint8Array(W * H * STRIDE);
-  for (let y = 0; y < H; y++) {
-    const lat = Math.abs(90 - ((y + 0.5) / H) * 180);
-    const polar = 1 - smooth(50, 72, lat);
-    for (let x = 0; x < W; x++) {
-      const i = (y * W + x) * 4;
-      const o = (y * W + x) * STRIDE;
-      const r = d[i], g = d[i + 1], b = d[i + 2];
-      tex[o] = r;
-      tex[o + 1] = g;
-      tex[o + 2] = b;
-      tex[o + 3] = n[i];
-      tex[o + 4] = n[i + 1];
-      tex[o + 5] = n[i + 2];
-      const q = cloudAt[y * W + x] / 255 + (detail[y * W + x] - 0.5) * 1.1;
-      tex[o + 6] = 255 * 0.75 * smooth(0.55, 1.05, q) * polar;
-      tex[o + 7] = 255 * clamp01((b - 1.25 * Math.max(r, g) - 8) / 28);
-    }
+  for (let p = 0, i = 0, o = 0; p < W * H; p++, i += 4, o += STRIDE) {
+    const r = d[i], g = d[i + 1], b = d[i + 2];
+    tex[o] = r;
+    tex[o + 1] = g;
+    tex[o + 2] = b;
+    tex[o + 3] = n[i];
+    tex[o + 4] = c[i];
+    // Open water in Blue Marble NG is a deep, uniform navy; shallows are teal.
+    tex[o + 5] = 255 * clamp01((b - (r > g ? r : g) - 4) / 10);
   }
   return { W, H, tex };
 }
 
-/** One flat texel: a blue planet with no lights or clouds, used if loading fails. */
-const FALLBACK = { W: 1, H: 1, tex: Uint8Array.from([28, 78, 150, 4, 10, 34, 0, 255]) };
+/** One flat texel: a dark blue planet with no lights or clouds, used if loading fails. */
+const FALLBACK = { W: 1, H: 1, tex: Uint8Array.from([8, 22, 52, 0, 0, 255]) };
 
 /**
  * Sample the texture for every pixel of the disk (plus a 1px rim for the
@@ -165,7 +175,7 @@ function sampleDisk(T, cw, ch, R, lat0, lon0) {
   const latScale = H / Math.PI;
   const centerTx = ((lon0 + 180) / 360) * W - 0.5;
 
-  // Bilinear fetch of all eight channels, wrapping across the dateline.
+  // Bilinear fetch of all channels, wrapping across the dateline.
   const fetch = (tx, ty, o) => {
     tx -= Math.floor(tx / W) * W;
     if (tx >= W) tx -= W;
@@ -222,6 +232,7 @@ function sampleDisk(T, cw, ch, R, lat0, lon0) {
 /** Light the cached samples for the current sun and write RGBA pixels. */
 function shade(px, S, cw, ch, cx, cy, R, lat0, lon0, sun) {
   px.fill(0);
+  const { SUN, GROUND, CLOUD, AIR, LIGHTS } = TABLES;
   const la0 = lat0 * RAD;
   const sl = sun.lat * RAD;
   const dl = (sun.lon - lon0) * RAD;
@@ -229,13 +240,12 @@ function shade(px, S, cw, ch, cx, cy, R, lat0, lon0, sun) {
   const sx = Math.cos(sl) * Math.sin(dl);
   const sy = Math.cos(la0) * Math.sin(sl) - Math.sin(la0) * Math.cos(sl) * Math.cos(dl);
   const sz = Math.sin(la0) * Math.sin(sl) + Math.cos(la0) * Math.cos(sl) * Math.cos(dl);
-  // Half vector between sun and viewer, for the ocean glint.
+  // Half vector between sun and viewer, for the sun glint.
   const hl = Math.hypot(sx, sy, sz + 1) || 1;
   const hx = sx / hl, hy = sy / hl, hz = (sz + 1) / hl;
 
   const invR = 1 / R;
-  const halo = R * HALO;
-  const outer = R + halo;
+  const outer = R * (1 + GLOW);
   const x0 = Math.max(0, Math.floor(cx - outer));
   const x1 = Math.min(cw, Math.ceil(cx + outer));
   const y0 = Math.max(0, Math.floor(cy - outer));
@@ -262,72 +272,89 @@ function shade(px, S, cw, ch, cx, cy, R, lat0, lon0, sun) {
           z = Math.sqrt(1 - r2);
         }
         const mu = nu * sx + nv * sy + z * sz;           // cos(solar zenith)
-        const day = smooth(-0.09, 0.04, mu);             // ~7.5 deg twilight band
+        const k = muIndex(mu);
+        const k3 = k * 3;
         const o = (y * cw + x) * STRIDE;
-        const cloud = S[o + 6] / 255;
-        const ocean = S[o + 7] / 255;
+        const alpha = CLOUD_ALPHA[S[o + 4]];
+        const clear = 1 - alpha;
+        const ocean = S[o + 5] / 255;
 
-        // Day side: softened Lambert so the subsolar point does not blow out.
-        const lit = mu > 0 ? 0.14 + mu * (1.7 - 0.72 * mu) : 0.14;
-        const cloudLum = 238 * lit;
-        let dr = S[o] * lit * 1.08, dg = S[o + 1] * lit * 1.05, db = S[o + 2] * lit;
-        dr += (cloudLum - dr) * cloud;
-        dg += (cloudLum - dg) * cloud;
-        db += (cloudLum * 1.02 - db) * cloud;
+        // Surface, lit by reddened sunlight plus a little skylight.
+        const ar = LIN[S[o]], ag = LIN[S[o + 1]], ab = LIN[S[o + 2]];
+        red = ar * (GROUND[k3] * EXPOSURE + NIGHT_AMBIENT[0]);
+        grn = ag * (GROUND[k3 + 1] * EXPOSURE + NIGHT_AMBIENT[1]);
+        blu = ab * (GROUND[k3 + 2] * EXPOSURE + NIGHT_AMBIENT[2]);
 
-        // Ocean glint.
-        const nh = nu * hx + nv * hy + z * hz;
-        if (nh > 0.75 && ocean > 0) {
-          const p2 = nh * nh, p4 = p2 * p2, p8 = p4 * p4, p16 = p8 * p8;
-          const g = p16 * p16 * p2 * ocean * (1 - cloud) * 90;
-          dr += g;
-          dg += g * 0.96;
-          db += g * 0.88;
+        // Sun glint on open water: a tight core in a broad, faint sheen.
+        if (mu > 0 && ocean > 0 && clear > 0) {
+          const nh = nu * hx + nv * hy + z * hz;
+          if (nh > 0.8) {
+            const p2 = nh * nh, p4 = p2 * p2, p8 = p4 * p4, p16 = p8 * p8, p32 = p16 * p16;
+            const p64 = p32 * p32, p128 = p64 * p64, p256 = p128 * p128;
+            const g = (0.006 * p32 + 0.08 * p256 * p256) * mu * ocean * clear * EXPOSURE;
+            red += g * SUN[k3];
+            grn += g * SUN[k3 + 1];
+            blu += g * SUN[k3 + 2];
+          }
         }
 
-        // Night side: dim Black Marble base, warm city lights under thin cloud.
-        const veil = 1 - cloud * 0.75;
-        const lights = Math.max(0, S[o + 3] - 22) * veil * (1 - day) * 1.5;
-        let nr = S[o + 3] * 0.35 * veil + lights * 1.0 + cloud * 16;
-        let ng = S[o + 4] * 0.38 * veil + lights * 0.8 + cloud * 19;
-        let nb = S[o + 5] * 0.5 * veil + lights * 0.5 + cloud * 28;
+        // Clouds: opaque white tops in sunlight, faint grey by moonlight.
+        if (alpha > 0) {
+          const cl = CLOUD_ALBEDO * EXPOSURE;
+          red = red * clear + alpha * (CLOUD[k3] * cl + NIGHT_AMBIENT[0] * 0.6);
+          grn = grn * clear + alpha * (CLOUD[k3 + 1] * cl + NIGHT_AMBIENT[1] * 0.6);
+          blu = blu * clear + alpha * (CLOUD[k3 + 2] * cl + NIGHT_AMBIENT[2] * 0.6);
+        }
 
-        red = nr + (dr - nr) * day;
-        grn = ng + (dg - ng) * day;
-        blu = nb + (db - nb) * day;
+        // City lights, once the sun is down, dimmed under cloud.
+        const lv = LIGHTS[k];
+        if (lv > 0) {
+          const l = LIN[S[o + 3]] * lv * (1 - 0.85 * alpha) * LIGHTS_GAIN;
+          red += l * LIGHTS_TINT[0];
+          grn += l * LIGHTS_TINT[1];
+          blu += l * LIGHTS_TINT[2];
+        }
 
-        // Warm, slightly dimmed twilight.
-        const tw = 4 * day * (1 - day);
-        red *= 1 + 0.06 * tw;
-        grn *= 1 - 0.05 * tw;
-        blu *= 1 - 0.12 * tw;
+        // Air between the ground and the Moon: dims and blues the view,
+        // thickest toward the limb and only where the air is sunlit.
+        const h = HAZE[(z * Z_N) | 0];
+        const keep = 1 - 0.75 * h;
+        const add = h * 0.32 * EXPOSURE;
+        red = red * keep + AIR[k3] * add;
+        grn = grn * keep + AIR[k3 + 1] * add;
+        blu = blu * keep + AIR[k3 + 2] * add;
 
-        // Limb darkening, then blue atmospheric haze on the lit limb.
-        const limb = 0.72 + 0.28 * z;
-        const edge = 1 - z;
-        const haze = edge * edge * (0.25 + 0.75 * edge) * 0.85 * smooth(-0.25, 0.35, mu);
-        red = red * limb * (1 - haze) + 95 * haze;
-        grn = grn * limb * (1 - haze) + 155 * haze;
-        blu = blu * limb * (1 - haze) + 255 * haze;
+        red = Math.sqrt(red > 1 ? 1 : red) * 255;
+        grn = Math.sqrt(grn > 1 ? 1 : grn) * 255;
+        blu = Math.sqrt(blu > 1 ? 1 : blu) * 255;
       }
 
-      // Halo outside the disk, brighter over the day side.
-      let gA = 0;
+      // The atmosphere seen edge-on past the disk: a thin band, bright where sunlit.
+      let gA = 0, gr = 0, gg = 0, gb = 0;
       if (cover < 1) {
-        const t = clamp01((rp - R) / halo);
-        const f = 1 - t;
-        const lit = smooth(-0.35, 0.4, (u * sx + v * sy) / (rn || 1));
-        gA = f * f * f * (0.08 + 0.5 * lit);
+        const lift = (rp - R) * invR;
+        const muLimb = rn > 0 ? (u * sx + v * sy) / rn : 0;
+        const k3 = muIndex(muLimb) * 3;
+        const fall = Math.exp(-(lift > 0 ? lift : 0) / 0.0065);
+        const ar = AIR[k3], ag = AIR[k3 + 1], ab = AIR[k3 + 2];
+        const lum = ab > ar ? ab : ar;
+        gA = fall * clamp01(lum * 0.95);
+        if (gA > 0) {
+          const inv = 1 / (lum || 1);
+          gr = Math.sqrt(ar * inv) * 235;
+          gg = Math.sqrt(ag * inv) * 235;
+          gb = Math.sqrt(ab * inv) * 255;
+        }
       }
 
       const alpha = cover + gA * (1 - cover);
-      if (alpha <= 0) continue;
-      const k = (1 - cover) * gA;
+      if (alpha <= 0.002) continue;
+      const kk = (1 - cover) * gA;
       const i = (y * cw + x) * 4;
       const dither = BAYER[(x & 1) | ((y & 1) << 1)];   // hides banding in dark gradients
-      px[i] = (red * cover + 110 * k) / alpha + dither;
-      px[i + 1] = (grn * cover + 170 * k) / alpha + dither;
-      px[i + 2] = (blu * cover + 255 * k) / alpha + dither;
+      px[i] = (red * cover + gr * kk) / alpha + dither;
+      px[i + 1] = (grn * cover + gg * kk) / alpha + dither;
+      px[i + 2] = (blu * cover + gb * kk) / alpha + dither;
       px[i + 3] = alpha * 255;
     }
   }
@@ -362,7 +389,7 @@ export function mountEarth(canvas, opts = {}) {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const cw = Math.max(1, Math.round(cssW * dpr));
     const ch = Math.max(1, Math.round(cssH * dpr));
-    const R = (Math.min(cw, ch) / 2) / (1 + HALO) - 1;
+    const R = (Math.min(cw, ch) / 2) / (1 + FRAME) - 1;
     if (R < 2) return;
     const cx = cw / 2, cy = ch / 2;
 

@@ -57,22 +57,24 @@ The hero is the logo come to life: the hound on a cratered moon, two stars, and 
 | File | What it does |
 | --- | --- |
 | `_includes/hero.html` | Hero markup and copy. Included by `index.html` (`hero: true`). |
-| `assets/js/hero.js` | Lays out the scene for the viewport and starts each part. |
-| `assets/js/hound.js` | Poses and animates the hound. |
-| `assets/js/hound-rig.js` | The logo's hound artwork cut at its joints. Generated; see below. |
+| `assets/js/hero.js` | Lays out the sky and Earth, then starts the 3D scene, or the illustrated version when WebGL2 is unavailable. |
+| `assets/js/hero3d.js` | Runs the 3D scene: camera, light, the logo-to-3D handover, the frame loop. |
+| `assets/js/scene3d.js`, `lunar.js` | WebGL2 host and the ray-marched lunar ground (rendered once, in strips, then reused each frame). |
+| `assets/js/dog3d.js`, `dogshader.js` | The 3D hound: a skeleton with smooth muscle volumes, and the shader that draws it and its shadow. |
+| `assets/js/dogbrain.js` | What the hound does: poses, transitions, idle steps, and small behaviours. |
 | `assets/js/earth.js` | Draws Earth into a canvas with live day and night. |
-| `assets/js/moon.js` | Draws the curved, cratered lunar surface and its light. |
 | `assets/js/astro.js` | Sun position, moon phase, and location from the time zone. |
+| `assets/js/moon.js`, `hound.js`, `hound-rig.js` | The illustrated fallback (and the logo hound shown at the start of the 3D scene). |
 
 **Location.** Approximate latitude and longitude come only from the browser's time zone (`Intl`), via a lookup table of time zones. No Geolocation API, no IP lookup.
 
 **Earth.** Centred on that location, with the real day/night terminator for the current time and city lights on the night side. It refreshes once a minute.
 
-**Moon.** The lit share of the surface is the moon's real illuminated fraction right now, lit from the right while waxing and from the left while waning (mirrored south of the equator). Crater shadows lengthen toward the terminator. The colour of the light follows the visitor's local time of day: warm at dawn and dusk, cool at night. At new moon the surface is lit only by earthshine.
+**Moon.** A ray-marched patch of regolith on a small sphere, seen from a crouching astronaut's eye height: craters of several sizes with irregular, worn rims, scattered rocks, fine grain, and hard shadows. The sun is always up. Its height follows the real moon phase (low with long shadows near new moon, high near full), from the right while waxing and the left while waning (mirrored south of the equator). The colour of the light follows the visitor's local time of day. Earthshine fills the shadows more near new moon.
 
-**Hound.** The hound is the mark's own artwork, cut into head, neck, torso, tail and jointed legs, and posed by turning those pieces. After about 9 s without pointer, touch, key, wheel or scroll activity it sits, after about 22 s it lies down, and after about 40 s it sleeps. Any activity wakes it to standing. It breathes, blinks and wags while awake. With `prefers-reduced-motion`, poses change without animation and the breathing, wagging, blinking and star twinkle are off.
+**Hound.** The page opens on the logo's own hound, drawn exactly as in the mark, standing on the moon. Once the ground has rendered it hands over to a 3D hound in the same pose, lit by the same sun and casting a real shadow. After about 10 s without pointer, touch, key, wheel or scroll activity it sits, after about 24 s it lies down, and after about 42 s it sleeps (head on its paws, eyes closed). Any activity wakes it to standing. While awake it follows the pointer with its head, wags, flicks an ear, blinks, and now and then sniffs the ground, does a play bow, or looks around. With `prefers-reduced-motion`, poses change without animation and the extra movement is off. Browsers without WebGL2 get the illustrated version.
 
-**Earth imagery** in `assets/img/earth/` is NASA, public domain (U.S. government work): `day.jpg` (Blue Marble land, ocean and ice), `night.jpg` (City Lights 2012), `clouds.jpg` (Blue Marble clouds).
+**Earth imagery** in `assets/img/earth/` is public domain, from Wikimedia Commons: `day.jpg` (NASA Blue Marble Next Generation, `File:World.topo.2004-09.png`), `night.jpg` (NASA Earth at Night 2012, `File:The earth at night.jpg`), `clouds.jpg` (Tom Patterson's Fair Weather Cloud Map from NASA data, `File:Fair Weather Cloud Map.jpg`).
 
 ### Preview parameters
 
@@ -80,7 +82,8 @@ These only change what the page shows for that visit:
 
 - `?at=2026-11-24T12:00` sets the clock (local time in the visitor's or `tz`'s zone).
 - `?tz=Asia/Tokyo` previews another time zone; `?lat=40.7&lon=-74` sets a location directly.
-- `?dog=sitting` holds a pose: `standing`, `sitting`, `lying` or `sleeping`.
+- `?dog=sitting` holds a pose: `standing`, `sitting`, `lying`, `sleeping`, `playbow` or `sniff`.
+- `?flat=1` shows the illustrated fallback instead of the 3D scene.
 - `?idle=10` makes the idle timers 10× faster.
 
 ### Regenerating the hound rig
