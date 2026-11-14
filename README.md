@@ -61,7 +61,8 @@ Every page shares one background, drawn in the browser from files in this repo. 
 | `_includes/hero.html` | Home page copy. Included when a page sets `hero: true`. |
 | `_layouts/default.html` | Page shell. Inner pages show `title` and `lede` from their front matter as the page heading. |
 | `assets/js/scene.js` | Lays out the moon, Earth, stars and (on the home page) the hound for the viewport. |
-| `assets/js/moon.js` | Draws the lunar surface as SVG: a curved horizon, regolith relief from an SVG lighting filter, shaded craters and small rocks, lit low from the right. |
+| `assets/js/moon.js` | Draws the lunar surface as SVG: a real Apollo photograph of the ground, cut to a gently curved horizon. |
+| `assets/img/moon/regolith.jpg` | The ground photograph. |
 | `assets/img/niche-hounds-hound.svg` | The hound from the mark, as a still image. |
 | `assets/js/earth.js` | Draws Earth into a canvas with live day and night. |
 | `assets/js/astro.js` | Sun position and location from the time zone. |
@@ -71,6 +72,8 @@ The background is fixed to the viewport, so inner-page content scrolls over it i
 **Earth** is the only live part. It is centred on the visitor's approximate location, taken only from the browser's time zone (`Intl`, via a lookup table; no Geolocation API, no IP lookup), with the real day/night terminator and city lights. It refreshes once a minute.
 
 **Moon and hound** are still. The horizon is the top of a small sphere, cresting right of centre; a phone sees a narrower slice of the same curve.
+
+**Moon imagery** in `assets/img/moon/regolith.jpg` is a crop of the Apollo 17 Taurus-Littrow panorama (NASA, public domain; Wikimedia Commons `File:Apollo 17 panorama 15121x2122.jpg`), converted to neutral grey.
 
 **Earth imagery** in `assets/img/earth/` is public domain, from Wikimedia Commons: `day.jpg` (NASA Blue Marble Next Generation, `File:World.topo.2004-09.png`), `night.jpg` (NASA Earth at Night 2012, `File:The earth at night.jpg`), `clouds.jpg` (Tom Patterson's Fair Weather Cloud Map from NASA data, `File:Fair Weather Cloud Map.jpg`).
 

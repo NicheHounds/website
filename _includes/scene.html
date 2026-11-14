@@ -1,5 +1,5 @@
 {% comment %}The space background: stars, a live Earth, the lunar surface. The home page adds the hound.{% endcomment %}
-<div class="scene" aria-hidden="true" data-scene="{% if include.hound %}home{% else %}page{% endif %}" data-texture-base="{{ '/assets/img/earth/' | relative_url }}">
+<div class="scene" aria-hidden="true" data-scene="{% if include.hound %}home{% else %}page{% endif %}" data-texture-base="{{ '/assets/img/earth/' | relative_url }}" data-moon="{{ '/assets/img/moon/regolith.jpg' | relative_url }}">
   <svg class="scene-stars" focusable="false"></svg>
   <canvas class="scene-earth"></canvas>
   <svg class="scene-moon" focusable="false"></svg>

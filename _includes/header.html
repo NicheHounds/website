@@ -3,7 +3,11 @@
     <img src="{{ '/assets/img/niche-hounds-mark-v4-white-on-navy.svg' | relative_url }}" width="48" height="48" alt="">
     <span class="brand-name">Niche Hounds</span>
   </a>
-  <nav class="nav" aria-label="Primary">
+  <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+    <span class="visually-hidden">Menu</span>
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="bars" d="M4 7h16M4 12h16M4 17h16"/><path class="cross" d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <nav class="nav" id="site-nav" aria-label="Primary">
     <a href="{{ '/' | relative_url }}"{% if page.url == "/" %} aria-current="page"{% endif %}>Home</a>
     <a href="{{ '/about/' | relative_url }}"{% if page.url == "/about/" %} aria-current="page"{% endif %}>About</a>
     <a href="{{ '/team/' | relative_url }}"{% if page.url == "/team/" %} aria-current="page"{% endif %}>Team</a>
