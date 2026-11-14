@@ -1,0 +1,29 @@
+---
+layout: default
+title: Team
+show_title: true
+lede: Placeholder. One sentence introducing the people behind Niche Hounds.
+description: Team.
+permalink: /team/
+---
+<!-- DRAFT: placeholder copy. Layout mockup only; no people are named on this page. -->
+{% assign people = "1,2,3,4,5,6" | split: "," %}
+<div class="page-body">
+  <ul class="grid grid--people" role="list" style="list-style:none;padding:0;margin:0">
+    {% for p in people %}
+    <li class="panel person">
+      <div class="avatar" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4.2"/><path d="M3.5 21c.9-4.6 4.3-7 8.5-7s7.6 2.4 8.5 7z"/></svg>
+      </div>
+      <h3>Name Surname</h3>
+      <p class="role">Role title</p>
+      <p class="muted">Placeholder bio. Two short sentences on background and what this person focuses on.</p>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <section class="panel cta" aria-labelledby="join">
+    <h2 id="join">Placeholder: an invitation to work together.</h2>
+    <a class="button" href="mailto:roger@nichehounds.com">Say hello</a>
+  </section>
+</div>

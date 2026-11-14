@@ -9,19 +9,27 @@
   <title>{{ site.title | escape }}</title>
   {% endif %}
   <meta name="description" content="{{ page.description | default: site.description | escape }}">
+  <meta name="theme-color" content="#121826">
   <link rel="icon" href="{{ '/assets/img/niche-hounds-mark-v4-white-on-navy.svg' | relative_url }}" type="image/svg+xml">
   <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
 </head>
-<body{% if page.hero %} class="has-hero"{% endif %}>
+<body class="{% if page.hero %}is-home{% else %}is-page{% endif %}">
   <a class="skip" href="#content">Skip to content</a>
+  {% include scene.html hound=page.hero %}
   {% include header.html %}
   <main id="content">
-    {% if page.hero %}{% include hero.html %}{% endif %}
-    {% if page.show_title %}
-    <h1>{{ page.title | escape }}</h1>
+    {% if page.hero %}
+    {% include hero.html %}
+    {% elsif page.show_title %}
+    <header class="page-head">
+      {% if page.kicker %}<p class="kicker">{{ page.kicker | escape }}</p>{% endif %}
+      <h1>{{ page.title | escape }}</h1>
+      {% if page.lede %}<p class="lede">{{ page.lede | escape }}</p>{% endif %}
+    </header>
     {% endif %}
     {{ content }}
   </main>
   {% include footer.html %}
+  <script type="module" src="{{ '/assets/js/scene.js' | relative_url }}"></script>
 </body>
 </html>

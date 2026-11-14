@@ -7,6 +7,7 @@ published: false
 title: Template
 logo:
 logo_alt:
+status: Testing
 description: One or two plain-text sentences. Shown on the card and the page.
 website_url:
 button_label: Visit site

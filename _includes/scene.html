@@ -1,0 +1,7 @@
+{% comment %}The space background: stars, a live Earth, the lunar surface. The home page adds the hound.{% endcomment %}
+<div class="scene" aria-hidden="true" data-scene="{% if include.hound %}home{% else %}page{% endif %}" data-texture-base="{{ '/assets/img/earth/' | relative_url }}">
+  <svg class="scene-stars" focusable="false"></svg>
+  <canvas class="scene-earth"></canvas>
+  <svg class="scene-moon" focusable="false"></svg>
+  {% if include.hound %}<img class="scene-hound" src="{{ '/assets/img/niche-hounds-hound.svg' | relative_url }}" alt="">{% endif %}
+</div>

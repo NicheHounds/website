@@ -2,25 +2,38 @@
 layout: default
 title: Ventures
 show_title: true
+lede: Placeholder. One sentence on the portfolio and what ties it together.
 description: Ventures.
 permalink: /ventures/
 ---
-
-<!-- DRAFT: placeholder copy. No ventures are published yet. -->
-
-{% if site.ventures.size == 0 %}
-<p class="lede">No ventures are listed yet.</p>
-{% else %}
-<ul class="venture-grid">
-  {% for venture in site.ventures %}
-  <li class="card">
-    {% include venture-logo.html src=venture.logo alt=venture.logo_alt %}
-    <h2 class="card__title"><a class="card__link" href="{{ venture.url | relative_url }}">{{ venture.title | escape }}</a></h2>
-    {% if venture.description != blank %}
-    <p class="card__desc">{{ venture.description | escape }}</p>
+<!-- DRAFT: placeholder copy. While no ventures are published, mock cards show the layout. -->
+<div class="page-body">
+  <ul class="venture-grid" role="list">
+    {% if site.ventures.size > 0 %}
+    {% for venture in site.ventures %}
+    <li class="panel card">
+      <div class="card__top">
+        {% if venture.logo != blank %}{% include venture-logo.html src=venture.logo alt=venture.logo_alt %}{% else %}<div class="logo-box logo-box--empty" aria-hidden="true"></div>{% endif %}
+        {% if venture.status != blank %}<span class="pill">{{ venture.status | escape }}</span>{% endif %}
+      </div>
+      <h2 class="card__title"><a class="card__link" href="{{ venture.url | relative_url }}">{{ venture.title | escape }}</a></h2>
+      {% if venture.description != blank %}<p class="card__desc">{{ venture.description | escape }}</p>{% endif %}
+      {% include ext-link.html url=venture.website_url label=venture.button_label %}
+    </li>
+    {% endfor %}
+    {% else %}
+    {% assign mock = "Exploring,Testing,Live,Retired" | split: "," %}
+    {% for status in mock %}
+    <li class="panel card">
+      <div class="card__top">
+        <div class="logo-box logo-box--empty" aria-hidden="true"></div>
+        <span class="pill">{{ status }}</span>
+      </div>
+      <h2 class="card__title">Venture name</h2>
+      <p class="card__desc">Placeholder. One or two sentences on the niche this venture serves and the value it creates.</p>
+      <span class="button" aria-disabled="true">Visit site</span>
+    </li>
+    {% endfor %}
     {% endif %}
-    {% include ext-link.html url=venture.website_url label=venture.button_label %}
-  </li>
-  {% endfor %}
-</ul>
-{% endif %}
+  </ul>
+</div>
