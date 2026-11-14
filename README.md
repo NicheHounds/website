@@ -73,7 +73,7 @@ The background is fixed to the viewport, so inner-page content scrolls over it i
 
 **Moon and hound** are still. The horizon is the top of a small sphere, cresting right of centre; a phone sees a narrower slice of the same curve.
 
-**Moon imagery** in `assets/img/moon/regolith.jpg` is a crop of the Apollo 17 Taurus-Littrow panorama (NASA, public domain; Wikimedia Commons `File:Apollo 17 panorama 15121x2122.jpg`), converted to neutral grey.
+**Moon imagery** in `assets/img/moon/regolith.jpg` is a crop of an Apollo 17 surface panorama at full resolution (NASA, public domain; NASA Image Library `jsc2004e52775`), converted to neutral grey, with the camera's réseau crosshairs removed.
 
 **Earth imagery** in `assets/img/earth/` is public domain, from Wikimedia Commons: `day.jpg` (NASA Blue Marble Next Generation, `File:World.topo.2004-09.png`), `night.jpg` (NASA Earth at Night 2012, `File:The earth at night.jpg`), `clouds.jpg` (Tom Patterson's Fair Weather Cloud Map from NASA data, `File:Fair Weather Cloud Map.jpg`).
 
