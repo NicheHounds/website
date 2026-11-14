@@ -289,6 +289,10 @@ main {
   gap: clamp(1rem, 2.5vw, 1.5rem);
 }
 
+.page-body--wide {
+  max-width: 92rem;
+}
+
 .panel {
   background: var(--panel);
   -webkit-backdrop-filter: blur(10px);
@@ -324,7 +328,10 @@ main {
 }
 
 .grid--people {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14.5rem), 1fr));
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
 }
 
 .num {
@@ -381,14 +388,33 @@ main {
 .person {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1.25rem;
+}
+
+.person__head {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}
+
+.person__head h2 {
+  font-size: clamp(1.3rem, 2.2vw, 1.6rem);
+  margin: 0 0 0.2rem;
+}
+
+.person__head .role {
+  margin: 0;
+}
+
+.person__bio p {
+  max-width: 62ch;
 }
 
 .avatar {
-  width: 72px;
-  height: 72px;
+  flex: none;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
-  margin-bottom: 0.9rem;
   background: var(--navy-2);
   border: 1px solid var(--faint);
   display: grid;
@@ -396,13 +422,9 @@ main {
 }
 
 .avatar svg {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   fill: rgba(245, 243, 238, 0.35);
-}
-
-.person h3 {
-  margin: 0;
 }
 
 .role {

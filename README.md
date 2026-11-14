@@ -25,7 +25,7 @@ Set `baseurl` to `""` in `_config.yml`. Internal links use the `relative_url` fi
 | --- | --- |
 | `/` | Home: the hero (placeholder copy). |
 | `/about/` | Layout mockup: what we do, three principles, how we work, a call to action. Placeholder copy. |
-| `/team/` | Layout mockup: a grid of person cards. Placeholder copy, no names. |
+| `/team/` | Layout mockup: two wide person cards with three-paragraph bios. Placeholder copy, no names. |
 | `/ventures/` | Lists the ventures collection. While none is published it shows mock cards. |
 | `/ventures/<slug>/` | One venture, from one Markdown file. |
 
