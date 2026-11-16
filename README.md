@@ -1,8 +1,8 @@
 # Niche Hounds
 
-Holding-company site. It is a draft: apart from the hero and the Team section, the words on the page are placeholders, marked as such in HTML comments. No ventures are named. It is one page — a hero, then About, Ventures and Team — on a fixed space background: stars, a live Earth and the lunar surface, with the hound standing on the moon.
+Holding-company site. It is one page: a hero, then About, Ventures and Team, on a fixed space background of stars, a live Earth and the lunar surface, with the hound standing on the moon. The About section and the Ventures intro line are still placeholder copy, marked as such in HTML comments.
 
-Until a custom domain is attached, GitHub Pages serves it at `https://nichehounds.github.io/website/`.
+It is served at `https://nichehounds.com/`. GitHub's own address for it, `https://nichehounds.github.io/website/`, redirects there.
 
 ## Local preview
 
@@ -17,13 +17,19 @@ If your Ruby is newer than 3.2, Bundler refuses to start. Jekyll installed as a 
 JEKYLL_NO_BUNDLER_REQUIRE=true jekyll serve
 ```
 
-Open `http://127.0.0.1:4000/website/`. The `baseurl` in `_config.yml` is `/website`, so asset and page links match the project-site path.
+Open `http://127.0.0.1:4000/`.
 
 Jekyll 4.3.4 is pinned in the `Gemfile`. Ruby is any 3.2 patch (`~> 3.2.0`). GitHub Actions installs the newest 3.2.x the runner provides (3.2.11 on the current image).
 
-## Custom domain later
+## Custom domain
 
-Set `baseurl` to `""` in `_config.yml`. Internal links use the `relative_url` filter, so that is the only change. Do not add a CNAME here; the domain is attached separately.
+`nichehounds.com` is attached in three places:
+
+- **`_config.yml`**: `url` is `https://nichehounds.com` and `baseurl` is `""`. Internal links use the `relative_url` filter, so nothing else in the templates refers to the address.
+- **GitHub**: repository **Settings → Pages → Custom domain** is `nichehounds.com`, with **Enforce HTTPS** on. The domain should also be verified under the organization's **Settings → Pages**. There is no `CNAME` file: the Actions deploy ignores one and uses the setting.
+- **DNS** (Squarespace Domains): four `A` records for `@` to `185.199.108.153`, `185.199.109.153`, `185.199.110.153` and `185.199.111.153`; four `AAAA` records for `@` to `2606:50c0:8000::153` through `2606:50c0:8003::153`; and a `CNAME` for `www` to `nichehounds.github.io`. The Google Workspace records for email sit alongside these and must stay.
+
+To move the site back to GitHub's address, remove the custom domain in Settings and set `url` to `https://nichehounds.github.io` and `baseurl` to `/website` in the same push.
 
 ## The page
 
