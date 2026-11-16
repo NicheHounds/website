@@ -1,6 +1,6 @@
 # Niche Hounds
 
-Holding-company site. It is one page: a hero, then About, Ventures and Team, on a fixed space background of stars, a live Earth and the lunar surface, with the hound standing on the moon. The About section and the Ventures intro line are still placeholder copy, marked as such in HTML comments.
+Holding-company site. It is one page: a hero, then Ventures and Team, on a fixed space background of stars, a live Earth and the lunar surface, with the hound standing on the moon. An About section (placeholder copy) is kept in the repo but not on the page.
 
 It is served at `https://nichehounds.com/`. GitHub's own address for it, `https://nichehounds.github.io/website/`, redirects there.
 
@@ -37,8 +37,7 @@ The home page (`index.html`) is the site. It is the hero, then three sections, e
 
 | Section | Anchor | File | What it is |
 | --- | --- | --- | --- |
-| Hero | `#top` | `_includes/hero.html` | Tagline and a **Learn more** button that scrolls to About. |
-| About | `#about` | `_includes/sections/about.html` | What we do, three principles, how we work. Not in the nav for now. |
+| Hero | `#top` | `_includes/hero.html` | Headline, subhead, and two buttons: **See the ventures** and **Meet the team**, which scroll to those sections. |
 | Ventures | `#ventures` | `_includes/sections/ventures.html` | One card per file in `_ventures/`, with a coloured status pill. |
 | Team | `#team` | `_includes/sections/team.html` | One card per person, each with Email and LinkedIn buttons. |
 
@@ -46,7 +45,7 @@ The nav (Home, Ventures, Team) is pinned to the top and frosts once content scro
 
 **Editing the team:** the people are in `_data/team.yml`: names, roles, headshots, the Email address and LinkedIn URL behind each card's buttons, and bios. Headshots live in `assets/img/team/` (square, 400×400 is plenty). The comment at the top of that file explains each field.
 
-**Old addresses** still work. `/about/`, `/team/` and `/ventures/` are small pages using `_layouts/redirect.html` that send visitors on to `/#about`, `/#team` and `/#ventures`. To redirect another address, add a page with `layout: redirect`, a `permalink`, and `redirect_to` set to where it should go.
+**Old addresses** still work. `/team/` and `/ventures/` are small pages using `_layouts/redirect.html` that send visitors on to `/#team` and `/#ventures`; `/about/` goes to the top of the home page while About is off it. To redirect another address, add a page with `layout: redirect`, a `permalink`, and `redirect_to` set to where it should go.
 
 There is no site-wide contact address; each team card has its own Email and LinkedIn buttons.
 
@@ -54,7 +53,8 @@ There is no site-wide contact address; each team card has its own Email and Link
 | --- | --- |
 | `/` | The whole site. |
 | `/ventures/<slug>/` | One venture, from one Markdown file. |
-| `/about/`, `/team/`, `/ventures/` | Redirects to their section of the home page. |
+| `/team/`, `/ventures/` | Redirect to their section of the home page. |
+| `/about/` | Redirects to the top of the home page. |
 
 ## Adding a venture
 
@@ -106,7 +106,7 @@ Every page shares one background, drawn in the browser from files in this repo. 
 | `assets/js/earth.js` | Draws Earth into a canvas with live day and night. |
 | `assets/js/astro.js` | Sun position and location from the time zone. |
 
-The background is fixed to the viewport, so content scrolls over it in translucent panels (`.panel`). Earth and the horizon sit in the same place on every page and depend only on the window size, so nothing moves when you go from page to page. The hound is drawn a darker grey than the logo's cream so it does not glow through the panels scrolling over it.
+The background is fixed to the viewport, so content scrolls over it in translucent panels (`.panel`). Earth and the horizon sit in the same place on every page and depend only on the window size, so nothing moves when you go from page to page. The hound is full cream at the top of the page and fades to grey as you scroll, so it does not glow through the panels passing over it. On short windows it is drawn a little smaller so it stays clear of the hero copy.
 
 **Earth** is the only live part. It is centred on the visitor's approximate location, taken only from the browser's time zone (`Intl`, via a lookup table; no Geolocation API, no IP lookup), with the real day/night terminator and city lights. It refreshes once a minute.
 

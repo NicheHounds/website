@@ -46,12 +46,13 @@ function start(scene) {
       // The image is 600 x 545 units; nose-to-paw height is 505 units, and the
       // image top sits 525 units above the paws.
       const full = mobile ? Math.min(W * 0.56, H * 0.3) : Math.min(H * 0.37, W * 0.3);
-      // Its ears stay clear of the subhead. On a short, wide window the words
-      // reach far enough down to touch them, so there the hound is drawn a
-      // little smaller -- never below 70% of its usual size. Measured in page
-      // coordinates, since the page may load scrolled down to a section.
-      const sub = document.querySelector('.hero-sub');
-      const limit = sub ? sub.getBoundingClientRect().bottom + window.scrollY + 24 : -Infinity;
+      // Its ears stay clear of the hero copy -- headline, subhead and the
+      // buttons under them. Where the copy reaches far enough down to touch
+      // them, the hound is drawn a little smaller, never below 70% of its usual
+      // size. Measured in page coordinates, since the page may load scrolled
+      // down to a section.
+      const copy = document.querySelector('.hero-copy');
+      const limit = copy ? copy.getBoundingClientRect().bottom + window.scrollY + 24 : -Infinity;
       let dogH = full;
       let k, dogX, ground;
       for (let i = 0; i < 4; i++) {
@@ -98,6 +99,23 @@ function start(scene) {
       out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(2)}" opacity="${a.toFixed(2)}"/>`;
     }
     starSvg.innerHTML = out;
+  }
+
+  // The hound fades from full cream to grey over the first 60% of a screen
+  // of scrolling, by which point the first cards are coming up over it.
+  if (hound) {
+    let queued = false;
+    const dim = () => {
+      queued = false;
+      const t = Math.min(1, Math.max(0, window.scrollY / (window.innerHeight * 0.6)));
+      hound.style.setProperty('--hound-brightness', (1 - 0.3 * t).toFixed(3));
+    };
+    dim();
+    window.addEventListener('scroll', () => {
+      if (!queued) { queued = true; requestAnimationFrame(dim); }
+    }, { passive: true });
+    // Arriving at /#team scrolls the page after this first runs.
+    window.addEventListener('load', dim, { once: true });
   }
 
   layout(true);

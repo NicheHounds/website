@@ -33,7 +33,7 @@ if (header) {
 }
 
 // On the home page, underline the link for the section being read.
-// Sections without a nav link (About) count as Home.
+// Anything above the first linked section counts as Home.
 const links = [...document.querySelectorAll('.nav a[data-section]')];
 const tracked = links
   .map((a) => document.getElementById(a.dataset.section))

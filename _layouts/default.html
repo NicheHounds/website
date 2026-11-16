@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  {% include gtm-head.html %}
   <meta name="viewport" content="width=device-width, initial-scale=1">
   {% if page.title and page.title != "" %}
   <title>{{ page.title | escape }} · {{ site.title | escape }}</title>
@@ -14,6 +15,7 @@
   <link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
 </head>
 <body class="{% if page.hero %}is-home{% else %}is-page{% endif %}">
+  {% include gtm-body.html %}
   <a class="skip" href="#content">Skip to content</a>
   {% include scene.html hound=page.hero %}
   {% include header.html %}

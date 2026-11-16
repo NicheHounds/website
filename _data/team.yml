@@ -11,9 +11,9 @@
 #   email     address for the Email button. Delete the line to drop the button.
 #   linkedin  full profile URL for the LinkedIn button, starting with https://.
 #             Delete the line to drop the button.
-#   bio       one bullet per paragraph, each in "double quotes". The first is
-#             bright, the rest muted. Add or remove bullets freely. Keep the
-#             quotes: without them a colon in the text breaks the page.
+#   bio       one bullet per paragraph, each in "double quotes". Add or remove
+#             bullets freely. Keep the quotes: without them a colon in the
+#             text breaks the page.
 #
 # To add a person, copy a whole block from "- name:" to its last bio bullet
 # and paste it below. Keep the indentation exactly as it is.

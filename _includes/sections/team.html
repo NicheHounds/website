@@ -19,7 +19,7 @@
         </div>
         <div class="person__bio">
           {% for para in p.bio %}
-          <p{% unless forloop.first %} class="muted"{% endunless %}>{{ para | escape }}</p>
+          <p>{{ para | escape }}</p>
           {% endfor %}
         </div>
         {% if p.email or p.linkedin %}

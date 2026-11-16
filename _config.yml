@@ -6,6 +6,11 @@ description: Serve the niche. Create value, or kill the idea fast.
 # two lines are all that tie the site to its address.
 url: "https://nichehounds.com"
 baseurl: ""
+# Google Tag Manager container. GA4 and any other tags are set up inside GTM,
+# not here. The snippet only goes into production builds (JEKYLL_ENV=production,
+# which the deploy workflow sets), so local previews send nothing. Leave empty
+# to remove it from the site.
+google_tag_manager: GTM-MGQ6WHR8
 permalink: pretty
 markdown: kramdown
 

@@ -126,10 +126,11 @@ p {
   display: block;
 }
 
-/* The hound stays put while the cards scroll over it; at full cream it glows
-   through their frosted glass. A darker grey keeps it in the background. */
+/* The hound is full cream at the top of the page and dims to grey as you
+   scroll, so it doesn't glow through the cards that pass over it. scene.js
+   sets --hound-brightness from 1 down to 0.7. */
 .scene-hound {
-  filter: brightness(0.7);
+  filter: brightness(var(--hound-brightness, 1));
 }
 
 /* Until the script has placed things, keep the art out of the way. */
@@ -248,9 +249,11 @@ main {
   max-height: 1100px;
 }
 
+/* The top gap is kept modest so the headline, subhead and buttons all sit
+   above the hound's head; scene.js shrinks the hound only if they still don't. */
 .hero-copy {
   max-width: 72rem;
-  padding: clamp(7rem, 22vh, 13rem) var(--gutter) 0;
+  padding: clamp(6rem, 16vh, 11rem) var(--gutter) 0;
 }
 
 /* The headline must end before the Earth. scene.js puts the Earth's left edge
@@ -277,8 +280,15 @@ main {
   text-wrap: balance;
 }
 
-.hero-button {
-  margin-top: clamp(1.5rem, 4vh, 2.25rem);
+/* Two buttons under the subhead; they wrap onto two rows if they must. */
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: clamp(1.5rem, 4vh, 2.25rem) 0 0;
+}
+
+.hero-actions .button {
   padding: 0.7rem 1.4rem;
   font-size: 1rem;
 }
@@ -432,6 +442,17 @@ main {
 .button:hover {
   background: var(--cream);
   color: var(--navy);
+}
+
+/* The main action: filled cream. On hover it lightens rather than inverting. */
+.button--primary {
+  background: var(--cream);
+  color: var(--navy);
+}
+
+.button--primary:hover {
+  background: #ffffff;
+  border-color: #ffffff;
 }
 
 .button[aria-disabled="true"] {
@@ -727,7 +748,17 @@ main {
   }
 
   .hero-copy {
-    padding-top: 9.5rem;
+    padding-top: 7.5rem;
+  }
+
+  /* Both buttons on one row at phone width. */
+  .hero-actions {
+    gap: 0.6rem;
+  }
+
+  .hero-actions .button {
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
   }
 
   /* The Earth sits behind the words on a phone, so the headline can use the
