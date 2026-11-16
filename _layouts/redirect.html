@@ -1,0 +1,19 @@
+{% comment %}
+Sends an old URL to a place on the home page. A page using this layout sets
+redirect_to (for example "/#team") and the permalink it keeps alive. The meta
+refresh works with scripts off; location.replace keeps the old URL out of the
+back button. Search engines are told the home page is the real address.
+{% endcomment %}{% assign target = page.redirect_to | relative_url %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ site.title | escape }}</title>
+  <meta name="robots" content="noindex">
+  <link rel="canonical" href="{{ page.redirect_to | absolute_url }}">
+  <meta http-equiv="refresh" content="0; url={{ target }}">
+  <script>location.replace({{ target | jsonify }});</script>
+</head>
+<body>
+  <p><a href="{{ target }}">Continue to {{ site.title | escape }}</a></p>
+</body>
+</html>

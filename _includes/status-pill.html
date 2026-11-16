@@ -1,0 +1,8 @@
+{% comment %}
+A venture's status as a coloured pill. The standard set and colours:
+  Live     green
+  Beta     yellow
+  Stealth  blue
+  Retired  grey
+Any other status shows in grey. Colours are in assets/css/site.css (.pill--*).
+{% endcomment %}{% assign pill_status = include.status | strip %}{% if pill_status != "" %}<span class="pill pill--{{ pill_status | slugify }}">{{ pill_status | escape }}</span>{% endif %}

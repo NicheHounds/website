@@ -1,37 +1,7 @@
 ---
-layout: default
-title: Team
-show_title: true
-lede: Placeholder. One sentence introducing the people behind Niche Hounds.
-description: Team.
+# Old address. Team is now a section of the home page; the people are in
+# _data/team.yml.
+layout: redirect
+redirect_to: /#team
 permalink: /team/
 ---
-<!-- DRAFT: placeholder copy. Layout mockup only; no people are named on this page. -->
-{% assign people = "1,2" | split: "," %}
-<div class="page-body page-body--wide">
-  <ul class="grid grid--people" role="list">
-    {% for p in people %}
-    <li class="panel person">
-      <div class="person__head">
-        <div class="avatar" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4.2"/><path d="M3.5 21c.9-4.6 4.3-7 8.5-7s7.6 2.4 8.5 7z"/></svg>
-        </div>
-        <div>
-          <h2>Name Surname</h2>
-          <p class="role">Role title</p>
-        </div>
-      </div>
-      <div class="person__bio">
-        <p>Placeholder bio, first paragraph. Two or three sentences on who this person is and what they do at Niche Hounds: their part in finding, testing and building ventures.</p>
-        <p class="muted">Placeholder, second paragraph. Background before Niche Hounds: the companies, roles or fields that shaped how they work, and the kind of problems they are best at.</p>
-        <p class="muted">Placeholder, third paragraph. Something more personal or a point of view: what they care about, a principle they work by, or where they are based.</p>
-      </div>
-    </li>
-    {% endfor %}
-  </ul>
-
-  <section class="panel cta" aria-labelledby="join">
-    <h2 id="join">Placeholder: an invitation to work together.</h2>
-    <a class="button" href="mailto:roger@nichehounds.com">Say hello</a>
-  </section>
-</div>

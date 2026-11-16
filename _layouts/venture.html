@@ -3,14 +3,16 @@ layout: default
 ---
 <!-- DRAFT: venture page template. Copy is whatever the venture file contains. -->
 <div class="page-head">
-  <p class="kicker"><a href="{{ '/ventures/' | relative_url }}">Ventures</a>{% if page.status != blank %} · {{ page.status | escape }}{% endif %}</p>
+  <p class="kicker"><a href="{{ '/#ventures' | relative_url }}">Ventures</a></p>
   <h1>{{ page.title | escape }}</h1>
-  {% if page.description != blank %}<p class="lede">{{ page.description | escape }}</p>{% endif %}
+  {% comment %}Each field is stripped and compared with "": Liquid's "!= blank" is true when a field is missing.{% endcomment %}
+  {% assign status = page.status | strip %}{% if status != "" %}<p class="venture-status">{% include status-pill.html status=status %}</p>{% endif %}
+  {% assign desc = page.description | strip %}{% if desc != "" %}<p class="lede">{{ desc | escape }}</p>{% endif %}
 </div>
 <div class="page-body">
   <article class="panel venture">
-    {% if page.logo != blank %}{% include venture-logo.html src=page.logo alt=page.logo_alt large=true %}{% endif %}
-    {% if content != blank %}<div class="venture-body">{{ content }}</div>{% endif %}
+    {% include venture-logo.html src=page.logo alt=page.logo_alt fill=page.logo_fill initials=page.initials large=true %}
+    {% assign body = content | strip %}{% if body != "" %}<div class="venture-body">{{ content }}</div>{% endif %}
     {% include ext-link.html url=page.website_url label=page.button_label %}
   </article>
 </div>

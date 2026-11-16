@@ -1,11 +1,24 @@
-{% assign src = include.src %}
-{% if src != blank %}
-<div class="logo-box{% if include.large %} logo-box--large{% endif %}">
-  {% if src contains "://" %}
-    {% assign href = src %}
-  {% else %}
-    {% assign href = src | relative_url %}
-  {% endif %}
-  <img src="{{ href | escape }}" alt="{{ include.alt | escape }}">
+{% comment %}
+A venture's mark in a rounded square, used on the card and the venture page.
+It shows the first of these that the venture has:
+  logo      The image at src. With fill=true it fills the square edge to edge,
+            for square app-icon logos with their own background. Otherwise it
+            is fitted inside with a margin: never cropped, never stretched.
+  initials  Two or three letters, when there is no logo.
+  nothing   An empty dashed square if placeholder=true; otherwise no output.
+Values are stripped and compared with "": Liquid's "!= blank" is true when a
+field is missing, so it cannot be used for this.
+{% endcomment %}
+{% assign mark_src = include.src | strip %}
+{% assign mark_initials = include.initials | strip | upcase %}
+{% assign mark_size = "" %}{% if include.large %}{% assign mark_size = " logo-box--large" %}{% endif %}
+{% if mark_src != "" %}
+  {% if mark_src contains "://" %}{% assign mark_href = mark_src %}{% else %}{% assign mark_href = mark_src | relative_url %}{% endif %}
+<div class="logo-box{{ mark_size }}{% if include.fill %} logo-box--fill{% endif %}">
+  <img src="{{ mark_href | escape }}" alt="{{ include.alt | escape }}">
 </div>
+{% elsif mark_initials != "" %}
+<div class="logo-box logo-box--initials{{ mark_size }}" aria-hidden="true">{{ mark_initials | escape }}</div>
+{% elsif include.placeholder %}
+<div class="logo-box logo-box--empty{{ mark_size }}" aria-hidden="true"></div>
 {% endif %}

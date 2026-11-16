@@ -1,5 +1,11 @@
+{% comment %}
+Pinned to the top. Every link points at a place on the home page, so on the
+home page they scroll smoothly and elsewhere they load it. "#top" is the top of
+the page. data-section ties a link to the section it marks as current.
+About has no link for now: the hero's "Learn more" button reaches it.
+{% endcomment %}
 <header class="site-header">
-  <a class="brand" href="{{ '/' | relative_url }}">
+  <a class="brand" href="{{ '/#top' | relative_url }}">
     <img src="{{ '/assets/img/niche-hounds-mark-v4-white-on-navy.svg' | relative_url }}" width="48" height="48" alt="">
     <span class="brand-name">Niche Hounds</span>
   </a>
@@ -8,9 +14,8 @@
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path class="bars" d="M4 7h16M4 12h16M4 17h16"/><path class="cross" d="M6 6l12 12M18 6L6 18"/></svg>
   </button>
   <nav class="nav" id="site-nav" aria-label="Primary">
-    <a href="{{ '/' | relative_url }}"{% if page.url == "/" %} aria-current="page"{% endif %}>Home</a>
-    <a href="{{ '/about/' | relative_url }}"{% if page.url == "/about/" %} aria-current="page"{% endif %}>About</a>
-    <a href="{{ '/team/' | relative_url }}"{% if page.url == "/team/" %} aria-current="page"{% endif %}>Team</a>
-    <a href="{{ '/ventures/' | relative_url }}"{% if page.url == "/ventures/" or page.collection == "ventures" %} aria-current="page"{% endif %}>Ventures</a>
+    <a href="{{ '/#top' | relative_url }}" data-section="top"{% if page.url == "/" %} aria-current="page"{% endif %}>Home</a>
+    <a href="{{ '/#ventures' | relative_url }}" data-section="ventures"{% if page.collection == "ventures" %} aria-current="page"{% endif %}>Ventures</a>
+    <a href="{{ '/#team' | relative_url }}" data-section="team">Team</a>
   </nav>
 </header>

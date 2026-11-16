@@ -1,0 +1,35 @@
+{% comment %}Home page section: Team. The people come from _data/team.yml; edit them there.{% endcomment %}
+<section class="section" id="team" aria-labelledby="team-title">
+  <header class="section-head">
+    <h2 id="team-title">Team</h2>
+    <p class="lede">Two operators who've spent their careers at the intersection of financial services and technology, now building small products of our own.</p>
+  </header>
+  <div class="page-body page-body--wide">
+    <ul class="grid grid--people" role="list">
+      {% for p in site.data.team %}
+      <li class="panel person">
+        <div class="person__head">
+          <div class="avatar" aria-hidden="true">
+            {% if p.photo %}<img src="{{ p.photo | relative_url }}" alt="" width="88" height="88" loading="lazy" decoding="async">{% else %}<svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="4.2"/><path d="M3.5 21c.9-4.6 4.3-7 8.5-7s7.6 2.4 8.5 7z"/></svg>{% endif %}
+          </div>
+          <div>
+            <h3>{{ p.name | escape }}</h3>
+            <p class="role">{{ p.role | escape }}</p>
+          </div>
+        </div>
+        <div class="person__bio">
+          {% for para in p.bio %}
+          <p{% unless forloop.first %} class="muted"{% endunless %}>{{ para | escape }}</p>
+          {% endfor %}
+        </div>
+        {% if p.email or p.linkedin %}
+        <p class="person__links">
+          {% if p.email %}<a class="button button--small" href="mailto:{{ p.email }}">Email<span class="visually-hidden"> {{ p.name | escape }}</span></a>{% endif %}
+          {% if p.linkedin %}<a class="button button--small" href="{{ p.linkedin }}" target="_blank" rel="noopener">LinkedIn<span class="visually-hidden"> profile for {{ p.name | escape }}</span></a>{% endif %}
+        </p>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>

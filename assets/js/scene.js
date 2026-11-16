@@ -31,22 +31,37 @@ function start(scene) {
     const mobile = W < 720;
 
     // The top of a small sphere: the horizon rises to a crest right of centre.
-    // On inner pages it sits lower, leaving the sky for content. A phone sees a
+    // The crest is the same on every page -- between the old home and inner-page
+    // heights -- so the ground does not shift as you navigate. A phone sees a
     // narrower slice of the same curve.
     const R = 2.6 * Math.max(W, 900);
     const cx = W * (mobile ? 0.62 : 0.68);
-    const crest = H * (home ? (mobile ? 0.76 : 0.7) : (mobile ? 0.88 : 0.84));
+    const crest = H * (mobile ? 0.82 : 0.77);
     const cy = crest + R;
     const surfaceY = (x) => cy - Math.sqrt(Math.max(0, R * R - (x - cx) * (x - cx)));
 
     let shadow = null;
     if (home && hound) {
       // The hound stands on the near ground, in front of the horizon.
-      // The image is 600 x 545 units; nose-to-paw height is 505 units.
-      const dogH = mobile ? Math.min(W * 0.56, H * 0.3) : Math.min(H * 0.37, W * 0.3);
-      const k = dogH / 505;
-      const dogX = mobile ? W * 0.42 : Math.max(W * 0.25, 300 * k + 24);
-      const ground = Math.min(surfaceY(dogX) + dogH * 0.22, H - dogH * 0.06);
+      // The image is 600 x 545 units; nose-to-paw height is 505 units, and the
+      // image top sits 525 units above the paws.
+      const full = mobile ? Math.min(W * 0.56, H * 0.3) : Math.min(H * 0.37, W * 0.3);
+      // Its ears stay clear of the subhead. On a short, wide window the words
+      // reach far enough down to touch them, so there the hound is drawn a
+      // little smaller -- never below 70% of its usual size. Measured in page
+      // coordinates, since the page may load scrolled down to a section.
+      const sub = document.querySelector('.hero-sub');
+      const limit = sub ? sub.getBoundingClientRect().bottom + window.scrollY + 24 : -Infinity;
+      let dogH = full;
+      let k, dogX, ground;
+      for (let i = 0; i < 4; i++) {
+        k = dogH / 505;
+        dogX = mobile ? W * 0.42 : Math.max(W * 0.25, 300 * k + 24);
+        ground = Math.min(surfaceY(dogX) + dogH * 0.22, H - dogH * 0.06);
+        const fits = ((ground - limit) / 525) * 505;
+        if (dogH <= fits + 0.5 || dogH <= full * 0.7) break;
+        dogH = Math.max(fits, full * 0.7);
+      }
       Object.assign(hound.style, {
         left: `${dogX - (376 - 90) * k}px`,
         top: `${ground - (625 - 100) * k}px`,
@@ -56,20 +71,12 @@ function start(scene) {
       shadow = { x: dogX - 40 * k, y: ground - 4 * k, rx: 290 * k };
     }
 
-    // Earth: beside the tagline on the home page, up and to the right on inner
-    // pages, and behind the words on a phone.
-    let D, ex, ey;
-    if (home) {
-      const copy = document.querySelector('.hero-copy');
-      const box = copy ? copy.getBoundingClientRect() : { top: H * 0.2, bottom: H * 0.45 };
-      D = mobile ? Math.min(W * 0.56, H * 0.28) : Math.max(200, Math.min(W * 0.26, H * 0.48, 440));
-      ex = mobile ? W - D / 2 - 14 : W * 0.74;
-      ey = mobile ? Math.max(D / 2 + 70, H * 0.17) : Math.max(D / 2 + 70, (box.top + box.bottom) / 2);
-    } else {
-      D = mobile ? Math.min(W * 0.46, H * 0.24) : Math.max(180, Math.min(W * 0.22, H * 0.36, 360));
-      ex = mobile ? W - D / 2 - 14 : W * 0.78;
-      ey = mobile ? Math.max(D / 2 + 70, H * 0.15) : Math.max(D / 2 + 80, H * 0.3);
-    }
+    // Earth: the same sphere in the same place on every page. It depends only on
+    // the viewport, never on the page or its content, so it does not move or
+    // resize as you navigate. On a phone it sits behind the words.
+    const D = mobile ? Math.min(W * 0.56, H * 0.28) : Math.max(200, Math.min(W * 0.26, H * 0.48, 440));
+    const ex = mobile ? W - D / 2 - 14 : W * 0.74;
+    const ey = mobile ? Math.max(D / 2 + 70, H * 0.17) : Math.max(D / 2 + 70, H * 0.35);
     Object.assign(earth.style, { width: `${D}px`, height: `${D}px`, left: `${ex - D / 2}px`, top: `${ey - D / 2}px` });
 
     drawStars(W, H, surfaceY);

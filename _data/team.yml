@@ -1,0 +1,38 @@
+# ===========================================================================
+# THE TEAM: edit this list to change the cards in the Team section of the
+# home page. Nothing else needs touching. One entry here makes one card, in
+# this order.
+#
+#   name      heading on the card
+#   role      the line under the name
+#   photo     headshot, as a path inside this repo. Put the file in
+#             assets/img/team/ -- a square image, 400x400 is plenty. Delete
+#             the line to show the plain silhouette instead.
+#   email     address for the Email button. Delete the line to drop the button.
+#   linkedin  full profile URL for the LinkedIn button, starting with https://.
+#             Delete the line to drop the button.
+#   bio       one bullet per paragraph, each in "double quotes". The first is
+#             bright, the rest muted. Add or remove bullets freely. Keep the
+#             quotes: without them a colon in the text breaks the page.
+#
+# To add a person, copy a whole block from "- name:" to its last bio bullet
+# and paste it below. Keep the indentation exactly as it is.
+# ===========================================================================
+
+- name: Gargi Banerjee
+  photo: /assets/img/team/gargi-banerjee.jpg
+  role: Co-founder
+  email: gargi@nichehounds.com
+  linkedin: https://www.linkedin.com/in/banerjeeg/
+  bio:
+    - "Gargi moved from investment banking into operations leadership at Goldman Sachs, and later at Evercore. She went on to be General Manager of Institutional Banking products at Salesforce and COO of a venture capital firm. Gargi is also an investor at Placidus Partners and co-founder of SwivelUp."
+    - "Gargi holds a BS in Civil Engineering from Columbia University. Her dogs are Wally, a Samoyed, and Griffin, a Pomeranian."
+
+- name: Roger Mitchell
+  photo: /assets/img/team/roger-mitchell.jpg
+  role: Co-founder
+  email: roger@nichehounds.com
+  linkedin: https://www.linkedin.com/in/rogeramitchell/
+  bio:
+    - "Roger has spent sixteen years leading digital transformation projects across financial services, professional services, and enterprise nonprofits, the last decade of which has been at Dodge Labs. Roger also volunteers as an EMT and rescue technician with the Princeton First Aid & Rescue Squad."
+    - "Roger holds a BA in Economics from the University of Miami and an Executive MBA from Quantic. His dog is Piper, a pit bull terrier."

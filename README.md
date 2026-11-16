@@ -1,6 +1,6 @@
 # Niche Hounds
 
-Holding-company site. It is a draft: the words on the pages are placeholders, marked as such in HTML comments. No ventures or people are named. Every page sits on the same space background: stars, a live Earth and the lunar surface. The home page also stands the hound on the moon.
+Holding-company site. It is a draft: apart from the hero and the Team section, the words on the page are placeholders, marked as such in HTML comments. No ventures are named. It is one page — a hero, then About, Ventures and Team — on a fixed space background: stars, a live Earth and the lunar surface, with the hound standing on the moon.
 
 Until a custom domain is attached, GitHub Pages serves it at `https://nichehounds.github.io/website/`.
 
@@ -11,6 +11,12 @@ bundle install
 bundle exec jekyll serve
 ```
 
+If your Ruby is newer than 3.2, Bundler refuses to start. Jekyll installed as a plain gem still works if you tell it to skip Bundler:
+
+```sh
+JEKYLL_NO_BUNDLER_REQUIRE=true jekyll serve
+```
+
 Open `http://127.0.0.1:4000/website/`. The `baseurl` in `_config.yml` is `/website`, so asset and page links match the project-site path.
 
 Jekyll 4.3.4 is pinned in the `Gemfile`. Ruby is any 3.2 patch (`~> 3.2.0`). GitHub Actions installs the newest 3.2.x the runner provides (3.2.11 on the current image).
@@ -19,33 +25,59 @@ Jekyll 4.3.4 is pinned in the `Gemfile`. Ruby is any 3.2 patch (`~> 3.2.0`). Git
 
 Set `baseurl` to `""` in `_config.yml`. Internal links use the `relative_url` filter, so that is the only change. Do not add a CNAME here; the domain is attached separately.
 
-## Pages
+## The page
+
+The home page (`index.html`) is the site. It is the hero, then three sections, each from its own include:
+
+| Section | Anchor | File | What it is |
+| --- | --- | --- | --- |
+| Hero | `#top` | `_includes/hero.html` | Tagline and a **Learn more** button that scrolls to About. |
+| About | `#about` | `_includes/sections/about.html` | What we do, three principles, how we work. Not in the nav for now. |
+| Ventures | `#ventures` | `_includes/sections/ventures.html` | One card per file in `_ventures/`, with a coloured status pill. |
+| Team | `#team` | `_includes/sections/team.html` | One card per person, each with Email and LinkedIn buttons. |
+
+The nav (Home, Ventures, Team) is pinned to the top and frosts once content scrolls under it. Every nav link, the logo and the hero button scroll smoothly to their section; the underline follows the section being read. Sections below the fold fade in as they arrive. Visitors who ask their system for reduced motion get instant jumps and no fades.
+
+**Editing the team:** the people are in `_data/team.yml`: names, roles, headshots, the Email address and LinkedIn URL behind each card's buttons, and bios. Headshots live in `assets/img/team/` (square, 400×400 is plenty). The comment at the top of that file explains each field.
+
+**Old addresses** still work. `/about/`, `/team/` and `/ventures/` are small pages using `_layouts/redirect.html` that send visitors on to `/#about`, `/#team` and `/#ventures`. To redirect another address, add a page with `layout: redirect`, a `permalink`, and `redirect_to` set to where it should go.
+
+There is no site-wide contact address; each team card has its own Email and LinkedIn buttons.
 
 | Path | What it is |
 | --- | --- |
-| `/` | Home: the hero (placeholder copy). |
-| `/about/` | Layout mockup: what we do, three principles, how we work, a call to action. Placeholder copy. |
-| `/team/` | Layout mockup: two wide person cards with three-paragraph bios. Placeholder copy, no names. |
-| `/ventures/` | Lists the ventures collection. While none is published it shows mock cards. |
+| `/` | The whole site. |
 | `/ventures/<slug>/` | One venture, from one Markdown file. |
-
-The contact address `roger@nichehounds.com` is in the footer.
+| `/about/`, `/team/`, `/ventures/` | Redirects to their section of the home page. |
 
 ## Adding a venture
 
-Create `_ventures/<slug>.md`. That single file is the venture. It is published at `/ventures/<slug>/` and listed on `/ventures/`. `_ventures/example.md` is a template with `published: false`, so it is not part of the site.
+Create `_ventures/<slug>.md`. That single file is the venture. It is published at `/ventures/<slug>/` and listed in the Ventures section of the home page. `_ventures/example.md` is a template with `published: false`, so it is not part of the site.
 
 Front matter:
 
 | Field | Required | What it does |
 | --- | --- | --- |
 | `title` | yes | Name. Shown on the card and as the page heading. |
-| `logo` | no | Site path such as `/assets/img/ventures/mark.svg`, or an absolute `https://` URL. Square or wide. Fitted inside a fixed box with `object-fit: contain` — not cropped, not stretched. |
+| `logo` | no | Site path such as `/assets/img/ventures/mark.svg`, or an absolute `https://` URL. Logos live in `assets/img/ventures/`. Square or wide. Fitted inside a fixed box with a margin: not cropped, not stretched. |
+| `logo_fill` | no | `true` for a square, app-icon logo with its own background: it fills the box edge to edge instead. |
+| `initials` | no | Two or three letters shown in the box when there is no `logo`, such as `TH`. With neither, the box is an empty dashed square. |
 | `logo_alt` | no | Alt text for the logo. Leave empty if the name beside it is enough. |
 | `description` | yes | Short plain-text summary. Used on the card and at the top of the page. |
 | `website_url` | no | The venture's own site. The button is omitted when this is empty. |
 | `button_label` | no | Label for that button. Defaults to `Visit site`. |
-| `status` | no | Short stage label shown as a pill, such as `Testing` or `Live`. |
+| `status` | no | One of `Live`, `Beta`, `Stealth` or `Retired`, spelled exactly so. Shown as a coloured pill (see below). |
+
+**Statuses.** These four are the standard. Each shows as a pill on the card and on the venture page, from `_includes/status-pill.html`; the colours are the `.pill--*` rules in `assets/css/site.css`.
+
+| Status | Pill |
+| --- | --- |
+| `Live` | Green |
+| `Beta` | Yellow |
+| `Stealth` | Blue |
+| `Retired` | Grey |
+
+Any other status shows in grey. The Ventures section orders cards Live, Beta, Stealth, Retired, then A to Z by title; other statuses go last.
 
 The card links to the venture page. The website button is a separate link (`target="_blank"` and `rel="noopener"`) and does not trigger the card link.
 
@@ -59,15 +91,16 @@ Every page shares one background, drawn in the browser from files in this repo. 
 | --- | --- |
 | `_includes/scene.html` | The background markup: stars, Earth, moon, and the hound on the home page. |
 | `_includes/hero.html` | Home page copy. Included when a page sets `hero: true`. |
-| `_layouts/default.html` | Page shell. Inner pages show `title` and `lede` from their front matter as the page heading. |
+| `_layouts/default.html` | Page shell. A page with `show_title: true` shows its `title` and `lede` as the page heading. |
 | `assets/js/scene.js` | Lays out the moon, Earth, stars and (on the home page) the hound for the viewport. |
+| `assets/js/site.js` | The nav: phone menu, pinned-header frosting, smooth scrolling, which link is current. Also the section fade-ins. |
 | `assets/js/moon.js` | Draws the lunar surface as SVG: a real Apollo photograph of the ground, cut to a gently curved horizon. |
 | `assets/img/moon/regolith.jpg` | The ground photograph. |
 | `assets/img/niche-hounds-hound.svg` | The hound from the mark, as a still image. |
 | `assets/js/earth.js` | Draws Earth into a canvas with live day and night. |
 | `assets/js/astro.js` | Sun position and location from the time zone. |
 
-The background is fixed to the viewport, so inner-page content scrolls over it in translucent panels (`.panel`). On inner pages the horizon sits lower and Earth moves up to the top right.
+The background is fixed to the viewport, so content scrolls over it in translucent panels (`.panel`). Earth and the horizon sit in the same place on every page and depend only on the window size, so nothing moves when you go from page to page. The hound is drawn a darker grey than the logo's cream so it does not glow through the panels scrolling over it.
 
 **Earth** is the only live part. It is centred on the visitor's approximate location, taken only from the browser's time zone (`Intl`, via a lookup table; no Geolocation API, no IP lookup), with the real day/night terminator and city lights. It refreshes once a minute.
 

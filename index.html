@@ -4,3 +4,11 @@ title: ""
 hero: true
 description: Serve the niche. Create value, or kill the idea fast.
 ---
+{% comment %}
+The whole site is this one page: the hero (from the layout), then these
+sections in order. Each has an id the nav and the hero button scroll to.
+/about/, /team/ and /ventures/ redirect here, to #about, #team and #ventures.
+{% endcomment %}
+{% include sections/about.html %}
+{% include sections/ventures.html %}
+{% include sections/team.html %}

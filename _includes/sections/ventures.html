@@ -1,0 +1,49 @@
+{% comment %}
+Home page section: Ventures. Cards come from the _ventures collection; see
+_ventures/example.md. They are ordered by status -- Live, Beta, Stealth,
+Retired -- then A to Z by name. A venture with any other status goes last.
+{% endcomment %}
+<!-- DRAFT: the section intro is placeholder copy. -->
+<section class="section" id="ventures" aria-labelledby="ventures-title">
+  <header class="section-head">
+    <h2 id="ventures-title">Ventures</h2>
+    <p class="lede">Placeholder. One sentence on the portfolio and what ties it together.</p>
+  </header>
+  <div class="page-body">
+    <ul class="venture-grid" role="list">
+      {% if site.ventures.size > 0 %}
+      {% assign status_order = "Live,Beta,Stealth,Retired" | split: "," %}
+      {% assign ranked = "" | split: "" %}
+      {% for s in status_order %}
+        {% assign group = site.ventures | where: "status", s | sort: "title" %}
+        {% assign ranked = ranked | concat: group %}
+      {% endfor %}
+      {% for v in site.ventures %}{% unless status_order contains v.status %}{% assign ranked = ranked | push: v %}{% endunless %}{% endfor %}
+      {% for venture in ranked %}
+      <li class="panel card">
+        <div class="card__top">
+          {% include venture-logo.html src=venture.logo alt=venture.logo_alt fill=venture.logo_fill initials=venture.initials placeholder=true %}
+          {% include status-pill.html status=venture.status %}
+        </div>
+        <h3 class="card__title"><a class="card__link" href="{{ venture.url | relative_url }}">{{ venture.title | escape }}</a></h3>
+        {% assign desc = venture.description | strip %}{% if desc != "" %}<p class="card__desc">{{ desc | escape }}</p>{% endif %}
+        {% include ext-link.html url=venture.website_url label=venture.button_label %}
+      </li>
+      {% endfor %}
+      {% else %}
+      {% assign mock = "Live,Beta,Stealth,Retired" | split: "," %}
+      {% for status in mock %}
+      <li class="panel card">
+        <div class="card__top">
+          <div class="logo-box logo-box--empty" aria-hidden="true"></div>
+          {% include status-pill.html status=status %}
+        </div>
+        <h3 class="card__title">Venture name</h3>
+        <p class="card__desc">Placeholder. One or two sentences on the niche this venture serves and the value it creates.</p>
+        <span class="button" aria-disabled="true">Visit site</span>
+      </li>
+      {% endfor %}
+      {% endif %}
+    </ul>
+  </div>
+</section>
