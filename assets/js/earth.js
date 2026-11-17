@@ -5,11 +5,11 @@
  * orthographic view centered on the visitor (from the time zone), north up.
  * No dependencies, no network beyond three same-origin textures:
  *
- *   day.jpg     NASA Blue Marble: Next Generation, September 2004, with
+ *   day.webp    NASA Blue Marble: Next Generation, September 2004, with
  *               topography and shallow water (public domain)
- *   night.jpg   NASA Earth Observatory / Suomi NPP VIIRS "Earth at Night"
+ *   night.webp  NASA Earth Observatory / Suomi NPP VIIRS "Earth at Night"
  *               2012, reduced to the city lights alone (public domain)
- *   clouds.jpg  Tom Patterson's fair-weather cloud map, shadedrelief.com,
+ *   clouds.webp Tom Patterson's fair-weather cloud map, shadedrelief.com,
  *               built from NASA Blue Marble clouds (public domain)
  *
  * All three are 2048x1024 equirectangular, -180..180 deg from the left edge.
@@ -24,6 +24,31 @@ const FRAME = 0.075;          // margin around the disk, as a fraction of its ra
 const GLOW = 0.04;            // how far the limb glow is drawn past the disk
 const REFRESH_MS = 60000;
 const DRAFT_DPR = 1;          // backing scale while the globe is being turned
+const SLICE_MS = 10;          // longest stretch of background work before yielding
+
+/**
+ * Give the browser a turn (input, scrolling, painting) between slices of
+ * work, so drawing the globe never shows up as a long task.
+ */
+const yieldToMain = () =>
+  globalThis.scheduler?.yield ? globalThis.scheduler.yield() : new Promise((r) => setTimeout(r, 0));
+
+/** Run fn(rowStart, rowEnd) over rows 0..h in time-boxed slices. Returns false if cancelled. */
+async function inSlices(h, fn, live) {
+  for (let y = 0; y < h;) {
+    const until = performance.now() + SLICE_MS;
+    while (y < h && performance.now() < until) {
+      const y2 = Math.min(h, y + 8);
+      fn(y, y2);
+      y = y2;
+    }
+    if (y < h) {
+      await yieldToMain();
+      if (!live()) return false;
+    }
+  }
+  return true;
+}
 const RESIZE_DEBOUNCE_MS = 120;
 const STRIDE = 6;             // bytes per sample: day rgb, city lights, cloud, ocean
 const BAYER = [-0.375, 0.125, 0.375, -0.125];
@@ -109,16 +134,20 @@ function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.decoding = 'async';
-    img.onload = () => resolve(img);
+    // decode() unpacks the image off the main thread before it is drawn.
+    img.onload = () => (img.decode ? img.decode().catch(() => {}) : Promise.resolve()).then(() => resolve(img));
     img.onerror = () => reject(new Error(`Could not load ${src}`));
     img.src = src;
   });
 }
 
-/** Pack the three maps into one interleaved texture at the day map's resolution. */
+/**
+ * Pack the three maps into one interleaved texture at the day map's
+ * resolution, a slice at a time.
+ */
 async function loadTextures(base) {
   const [day, night, clouds] = await Promise.all(
-    ['day', 'night', 'clouds'].map((name) => loadImage(`${base}${name}.jpg`)),
+    ['day', 'night', 'clouds'].map((name) => loadImage(`${base}${name}.webp`)),
   );
   const W = day.naturalWidth;
   const H = day.naturalHeight;
@@ -132,20 +161,25 @@ async function loadTextures(base) {
     return ctx.getImageData(0, 0, W, H).data;
   };
   const d = read(day);
+  await yieldToMain();
   const n = read(night);
+  await yieldToMain();
   const c = read(clouds);
+  await yieldToMain();
 
   const tex = new Uint8Array(W * H * STRIDE);
-  for (let p = 0, i = 0, o = 0; p < W * H; p++, i += 4, o += STRIDE) {
-    const r = d[i], g = d[i + 1], b = d[i + 2];
-    tex[o] = r;
-    tex[o + 1] = g;
-    tex[o + 2] = b;
-    tex[o + 3] = n[i];
-    tex[o + 4] = c[i];
-    // Open water in Blue Marble NG is a deep, uniform navy; shallows are teal.
-    tex[o + 5] = 255 * clamp01((b - (r > g ? r : g) - 4) / 10);
-  }
+  await inSlices(H, (ya, yb) => {
+    for (let p = ya * W, i = p * 4, o = p * STRIDE, end = yb * W; p < end; p++, i += 4, o += STRIDE) {
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      tex[o] = r;
+      tex[o + 1] = g;
+      tex[o + 2] = b;
+      tex[o + 3] = n[i];
+      tex[o + 4] = c[i];
+      // Open water in Blue Marble NG is a deep, uniform navy; shallows are teal.
+      tex[o + 5] = 255 * clamp01((b - (r > g ? r : g) - 4) / 10);
+    }
+  }, () => true);
   return { W, H, tex };
 }
 
@@ -158,11 +192,11 @@ const FALLBACK = { W: 1, H: 1, tex: Uint8Array.from([8, 22, 52, 0, 0, 255]) };
  * and reused for the once-a-minute relight. The view is mirror-symmetric about
  * the central meridian, so each projection solve serves two pixels.
  */
-function sampleDisk(T, cw, ch, R, lat0, lon0, reuse) {
-  const { W, H, tex } = T;
+function sampleDisk(out, T, cw, ch, R, lat0, lon0, ya = 0, yb = ch) {
   // Every pixel shade() reads is rewritten below, so a buffer from an earlier
-  // view of the same size can be reused without clearing.
-  const out = reuse && reuse.length === cw * ch * STRIDE ? reuse : new Uint8Array(cw * ch * STRIDE);
+  // view of the same size can be reused without clearing. ya..yb limits the
+  // work to a band of rows.
+  const { W, H, tex } = T;
   const cx = cw / 2;
   const cy = ch / 2;
   const sinL = Math.sin(lat0 * RAD);
@@ -172,8 +206,8 @@ function sampleDisk(T, cw, ch, R, lat0, lon0, reuse) {
   const lim2 = (reach * invR) ** 2;
   const x0 = Math.max(0, Math.floor(cx - reach));
   const xMid = Math.ceil(cx);
-  const y0 = Math.max(0, Math.floor(cy - reach));
-  const y1 = Math.min(ch, Math.ceil(cy + reach));
+  const y0 = Math.max(ya, Math.floor(cy - reach));
+  const y1 = Math.min(yb, Math.ceil(cy + reach));
   const lonScale = W / (2 * Math.PI);
   const latScale = H / Math.PI;
   const centerTx = ((lon0 + 180) / 360) * W - 0.5;
@@ -232,9 +266,9 @@ function sampleDisk(T, cw, ch, R, lat0, lon0, reuse) {
   return out;
 }
 
-/** Light the cached samples for the current sun and write RGBA pixels. */
-function shade(px, S, cw, ch, cx, cy, R, lat0, lon0, sun) {
-  px.fill(0);
+/** Light the cached samples for the current sun and write RGBA pixels (rows ya..yb). */
+function shade(px, S, cw, ch, cx, cy, R, lat0, lon0, sun, ya = 0, yb = ch) {
+  px.fill(0, ya * cw * 4, yb * cw * 4);
   const { SUN, GROUND, CLOUD, AIR, LIGHTS } = TABLES;
   const la0 = lat0 * RAD;
   const sl = sun.lat * RAD;
@@ -251,8 +285,8 @@ function shade(px, S, cw, ch, cx, cy, R, lat0, lon0, sun) {
   const outer = R * (1 + GLOW);
   const x0 = Math.max(0, Math.floor(cx - outer));
   const x1 = Math.min(cw, Math.ceil(cx + outer));
-  const y0 = Math.max(0, Math.floor(cy - outer));
-  const y1 = Math.min(ch, Math.ceil(cy + outer));
+  const y0 = Math.max(ya, Math.floor(cy - outer));
+  const y1 = Math.min(yb, Math.ceil(cy + outer));
 
   for (let y = y0; y < y1; y++) {
     const v = (cy - y - 0.5) * invR;
@@ -365,7 +399,7 @@ function shade(px, S, cw, ch, cx, cy, R, lat0, lon0, sun) {
 
 /**
  * Mount the globe on a canvas.
- * opts.textureBase  URL prefix for day.jpg, night.jpg, clouds.jpg (trailing slash)
+ * opts.textureBase  URL prefix for day.webp, night.webp, clouds.webp (trailing slash)
  * opts.lat, opts.lon  optional view center; defaults to browserLocation()
  * opts.onRender      optional callback({ ms, width, height, resampled }) after each draw
  *
@@ -391,39 +425,78 @@ export function mountEarth(canvas, opts = {}) {
   let frame = 0;
 
   let texture = null;
-  let cache = null;      // { key, samples, image }
+  let cache = null;      // { key, samples, image }; samples are complete for key
   let cssW = 0, cssH = 0;
   let resizeTimer = 0;
   let destroyed = false;
+  let job = 0;           // each draw takes a number; a newer draw cancels an unfinished one
 
-  function render() {
-    if (destroyed || !texture || cssW < 1 || cssH < 1) return;
-    const t0 = performance.now();
+  const ready = () => !destroyed && texture && cssW >= 1 && cssH >= 1;
+
+  function frameSize(quick) {
     const full = Math.min(window.devicePixelRatio || 1, 2);
-    const dpr = draft ? Math.min(full, DRAFT_DPR) : full;
+    const dpr = quick ? Math.min(full, DRAFT_DPR) : full;
     const cw = Math.max(1, Math.round(cssW * dpr));
     const ch = Math.max(1, Math.round(cssH * dpr));
     const R = (Math.min(cw, ch) / 2) / (1 + FRAME) - 1;
-    if (R < 2) return;
-    const cx = cw / 2, cy = ch / 2;
+    return { cw, ch, R, cx: cw / 2, cy: ch / 2, lat: lat0, lon: lon0, key: `${cw}x${ch}@${lat0},${lon0}` };
+  }
 
-    if (canvas.width !== cw || canvas.height !== ch) {
-      canvas.width = cw;
-      canvas.height = ch;
+  // Working buffers for a frame size, reusing the cached ones when they match.
+  function buffers(f) {
+    if (cache && cache.image.width === f.cw && cache.image.height === f.ch) {
+      return { samples: cache.samples, image: cache.image };
     }
-    const key = `${cw}x${ch}@${lat0},${lon0}`;
-    const resampled = !cache || cache.key !== key;
+    return { samples: new Uint8Array(f.cw * f.ch * STRIDE), image: ctx.createImageData(f.cw, f.ch) };
+  }
+
+  function show(f, image, t0, resampled) {
+    if (canvas.width !== f.cw || canvas.height !== f.ch) {
+      canvas.width = f.cw;
+      canvas.height = f.ch;
+    }
+    ctx.putImageData(image, 0, 0);
+    opts.onRender?.({ ms: performance.now() - t0, width: f.cw, height: f.ch, resampled });
+  }
+
+  // A whole frame at once, for gestures: drawn at draft resolution, it is quick.
+  function render() {
+    if (!ready()) return;
+    job++;
+    const t0 = performance.now();
+    const f = frameSize(draft);
+    if (f.R < 2) return;
+    const resampled = !cache || cache.key !== f.key;
     if (resampled) {
-      const sized = cache && cache.image.width === cw && cache.image.height === ch;
-      cache = {
-        key,
-        samples: sampleDisk(texture, cw, ch, R, lat0, lon0, sized ? cache.samples : null),
-        image: sized ? cache.image : ctx.createImageData(cw, ch),
-      };
+      const b = buffers(f);
+      sampleDisk(b.samples, texture, f.cw, f.ch, f.R, f.lat, f.lon);
+      cache = { key: f.key, ...b };
     }
-    shade(cache.image.data, cache.samples, cw, ch, cx, cy, R, lat0, lon0, sunPosition(now()));
-    ctx.putImageData(cache.image, 0, 0);
-    opts.onRender?.({ ms: performance.now() - t0, width: cw, height: ch, resampled });
+    shade(cache.image.data, cache.samples, f.cw, f.ch, f.cx, f.cy, f.R, f.lat, f.lon, sunPosition(now()));
+    show(f, cache.image, t0, resampled);
+  }
+
+  // A full-resolution frame in short slices, so first paint, resizes, the
+  // once-a-minute relight and the sharp frame after a gesture never block a
+  // tap or a scroll. The previous frame stays up until this one is done.
+  async function renderSliced() {
+    if (!ready()) return;
+    const my = ++job;
+    const live = () => my === job && !destroyed;
+    const t0 = performance.now();
+    const f = frameSize(false);
+    if (f.R < 2) return;
+    const resampled = !cache || cache.key !== f.key;
+    const b = resampled ? buffers(f) : cache;
+    if (resampled) {
+      cache = null;      // the buffers are being rewritten
+      const T = texture;
+      if (!(await inSlices(f.ch, (ya, yb) => sampleDisk(b.samples, T, f.cw, f.ch, f.R, f.lat, f.lon, ya, yb), live))) return;
+      cache = { key: f.key, ...b };
+    }
+    const sun = sunPosition(now());
+    if (!(await inSlices(f.ch, (ya, yb) => shade(b.image.data, b.samples, f.cw, f.ch, f.cx, f.cy, f.R, f.lat, f.lon, sun, ya, yb), live))) return;
+    show(f, b.image, t0, resampled);
   }
 
   const observer = new ResizeObserver((entries) => {
@@ -436,16 +509,16 @@ export function mountEarth(canvas, opts = {}) {
     cssW = box.width;
     cssH = box.height;
     clearTimeout(resizeTimer);
-    if (first) render();
-    else resizeTimer = setTimeout(render, RESIZE_DEBOUNCE_MS);
+    if (first) renderSliced();
+    else resizeTimer = setTimeout(renderSliced, RESIZE_DEBOUNCE_MS);
   });
   observer.observe(canvas);
 
   const tick = setInterval(() => {
-    if (!document.hidden) render();
+    if (!document.hidden && !draft) renderSliced();
   }, REFRESH_MS);
   const onVisible = () => {
-    if (!document.hidden) render();
+    if (!document.hidden && !draft) renderSliced();
   };
   document.addEventListener('visibilitychange', onVisible);
 
@@ -454,7 +527,7 @@ export function mountEarth(canvas, opts = {}) {
     .then((tex) => {
       texture = tex;
       cache = null;
-      render();
+      renderSliced();
     });
 
   // Gesture frames are drawn at most once per display frame.
@@ -468,11 +541,14 @@ export function mountEarth(canvas, opts = {}) {
       lat0 = Math.max(-89, Math.min(89, lat));
       lon0 = ((((lon + 180) % 360) + 360) % 360) - 180;
       draft = quick;
+      job++;             // a sharp frame still being drawn is now out of date
       queue();
     },
     settle() {
       draft = false;
-      queue();
+      cancelAnimationFrame(frame);
+      frame = 0;
+      renderSliced();
     },
     radius() {
       const box = canvas.getBoundingClientRect();

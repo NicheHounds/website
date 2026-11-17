@@ -112,7 +112,7 @@ Every page shares one background, drawn in the browser from files in this repo. 
 | `assets/js/scene.js` | Lays out the moon, Earth, stars and (on the home page) the hound for the viewport. |
 | `assets/js/site.js` | The nav: phone menu, pinned-header frosting, smooth scrolling, which link is current. Also the section fade-ins. |
 | `assets/js/moon.js` | Draws the lunar surface as SVG: a real Apollo photograph of the ground, cut to a gently curved horizon. |
-| `assets/img/moon/regolith.jpg` | The ground photograph. |
+| `assets/img/moon/regolith.webp` | The ground photograph. |
 | `assets/img/niche-hounds-hound.svg` | The hound from the mark, as a still image. |
 | `assets/js/earth.js` | Draws Earth into a canvas with live day and night. |
 | `assets/js/astro.js` | Sun position and location from the time zone. |
@@ -122,13 +122,13 @@ The background is fixed to the viewport, so content scrolls over it in transluce
 
 **Earth** is the only live part. It is centred on the visitor's approximate location, taken only from the browser's time zone (`Intl`, via a lookup table; no Geolocation API, no IP lookup), with the real day/night terminator and city lights. It refreshes once a minute.
 
-Visitors can **turn the Earth**: with a mouse or trackpad, press on it and drag (the cursor shows a hand over it); on a touchscreen, press and hold for a moment, then drag, so a quick swipe over the Earth still scrolls the page. North stays up. A flick coasts to a stop (no coasting with reduced motion). The Earth stays where it was left until the page reloads. Presses on links, buttons, the header, cards or the words themselves go to them, not the Earth. While it turns, the globe is drawn at a lower resolution, then redrawn sharp when it stops.
+Visitors can **turn the Earth**: with a mouse or trackpad, press on it and drag (the cursor shows a hand over it); on a touchscreen, press and hold for a moment, then drag, so a quick swipe over the Earth still scrolls the page. North stays up. A flick coasts to a stop (no coasting with reduced motion). The Earth stays where it was left until the page reloads. Presses on links, buttons, the header, cards or the words themselves go to them, not the Earth. While it turns, the globe is drawn at a lower resolution, then redrawn sharp when it stops. Loading the textures and drawing a sharp frame run in slices of about 10 ms, yielding to the browser between them, so the Earth never blocks a tap or a scroll (this is what keeps Total Blocking Time low in PageSpeed Insights).
 
 **Moon and hound** are still. The horizon is the top of a small sphere, cresting right of centre; a phone sees a narrower slice of the same curve.
 
-**Moon imagery** in `assets/img/moon/regolith.jpg` is a crop of an Apollo 17 surface panorama at full resolution (NASA, public domain; NASA Image Library `jsc2004e52775`), converted to neutral grey, with the camera's réseau crosshairs removed.
+**Moon imagery** in `assets/img/moon/regolith.webp` is a crop of an Apollo 17 surface panorama at full resolution (NASA, public domain; NASA Image Library `jsc2004e52775`), converted to neutral grey, with the camera's réseau crosshairs removed.
 
-**Earth imagery** in `assets/img/earth/` is public domain, from Wikimedia Commons: `day.jpg` (NASA Blue Marble Next Generation, `File:World.topo.2004-09.png`), `night.jpg` (NASA Earth at Night 2012, `File:The earth at night.jpg`), `clouds.jpg` (Tom Patterson's Fair Weather Cloud Map from NASA data, `File:Fair Weather Cloud Map.jpg`).
+**Earth imagery** in `assets/img/earth/` is public domain, from Wikimedia Commons: `day.webp` (NASA Blue Marble Next Generation, `File:World.topo.2004-09.png`), `night.webp` (NASA Earth at Night 2012, `File:The earth at night.jpg`), `clouds.webp` (Tom Patterson's Fair Weather Cloud Map from NASA data, `File:Fair Weather Cloud Map.jpg`). All four images are WebP, re-encoded from the earlier JPEGs (quality 80-84) to cut about 330 KB from the page.
 
 ### Preview parameters
 
