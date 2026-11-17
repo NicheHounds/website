@@ -5,6 +5,7 @@
  */
 import { mountEarth } from './earth.js';
 import { drawMoon } from './moon.js';
+import { makeSpinnable } from './spin.js';
 
 const scene = document.querySelector('.scene');
 if (scene) start(scene);
@@ -17,7 +18,7 @@ function start(scene) {
   const earth = $('.scene-earth');
   const starSvg = $('.scene-stars');
 
-  mountEarth(earth, { textureBase: scene.dataset.textureBase });
+  makeSpinnable(mountEarth(earth, { textureBase: scene.dataset.textureBase }));
 
   let lastW = 0;
   let lastH = 0;

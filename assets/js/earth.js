@@ -23,6 +23,7 @@ const RAD = Math.PI / 180;
 const FRAME = 0.075;          // margin around the disk, as a fraction of its radius
 const GLOW = 0.04;            // how far the limb glow is drawn past the disk
 const REFRESH_MS = 60000;
+const DRAFT_DPR = 1;          // backing scale while the globe is being turned
 const RESIZE_DEBOUNCE_MS = 120;
 const STRIDE = 6;             // bytes per sample: day rgb, city lights, cloud, ocean
 const BAYER = [-0.375, 0.125, 0.375, -0.125];
@@ -157,9 +158,11 @@ const FALLBACK = { W: 1, H: 1, tex: Uint8Array.from([8, 22, 52, 0, 0, 255]) };
  * and reused for the once-a-minute relight. The view is mirror-symmetric about
  * the central meridian, so each projection solve serves two pixels.
  */
-function sampleDisk(T, cw, ch, R, lat0, lon0) {
+function sampleDisk(T, cw, ch, R, lat0, lon0, reuse) {
   const { W, H, tex } = T;
-  const out = new Uint8Array(cw * ch * STRIDE);
+  // Every pixel shade() reads is rewritten below, so a buffer from an earlier
+  // view of the same size can be reused without clearing.
+  const out = reuse && reuse.length === cw * ch * STRIDE ? reuse : new Uint8Array(cw * ch * STRIDE);
   const cx = cw / 2;
   const cy = ch / 2;
   const sinL = Math.sin(lat0 * RAD);
@@ -365,6 +368,14 @@ function shade(px, S, cw, ch, cx, cy, R, lat0, lon0, sun) {
  * opts.textureBase  URL prefix for day.jpg, night.jpg, clouds.jpg (trailing slash)
  * opts.lat, opts.lon  optional view center; defaults to browserLocation()
  * opts.onRender      optional callback({ ms, width, height, resampled }) after each draw
+ *
+ * Returns controls for turning the globe (see spin.js):
+ *   view()                 the current view center, { lat, lon }
+ *   setView(lat, lon, d)   turn to a new center; d = true draws a quicker,
+ *                          lower-resolution frame for use mid-gesture
+ *   settle()               redraw at full resolution after a gesture
+ *   radius()               the disk's radius in CSS pixels
+ *   contains(x, y)         whether a viewport point is on the disk
  */
 export function mountEarth(canvas, opts = {}) {
   const ctx = canvas.getContext('2d');
@@ -374,8 +385,10 @@ export function mountEarth(canvas, opts = {}) {
 
   const base = opts.textureBase ?? '/assets/img/earth/';
   const here = browserLocation(now());
-  const lat0 = Number.isFinite(opts.lat) ? opts.lat : here.lat;
-  const lon0 = Number.isFinite(opts.lon) ? opts.lon : here.lon;
+  let lat0 = Number.isFinite(opts.lat) ? opts.lat : here.lat;
+  let lon0 = Number.isFinite(opts.lon) ? opts.lon : here.lon;
+  let draft = false;
+  let frame = 0;
 
   let texture = null;
   let cache = null;      // { key, samples, image }
@@ -386,7 +399,8 @@ export function mountEarth(canvas, opts = {}) {
   function render() {
     if (destroyed || !texture || cssW < 1 || cssH < 1) return;
     const t0 = performance.now();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const full = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = draft ? Math.min(full, DRAFT_DPR) : full;
     const cw = Math.max(1, Math.round(cssW * dpr));
     const ch = Math.max(1, Math.round(cssH * dpr));
     const R = (Math.min(cw, ch) / 2) / (1 + FRAME) - 1;
@@ -397,13 +411,14 @@ export function mountEarth(canvas, opts = {}) {
       canvas.width = cw;
       canvas.height = ch;
     }
-    const key = `${cw}x${ch}`;
+    const key = `${cw}x${ch}@${lat0},${lon0}`;
     const resampled = !cache || cache.key !== key;
     if (resampled) {
+      const sized = cache && cache.image.width === cw && cache.image.height === ch;
       cache = {
         key,
-        samples: sampleDisk(texture, cw, ch, R, lat0, lon0),
-        image: ctx.createImageData(cw, ch),
+        samples: sampleDisk(texture, cw, ch, R, lat0, lon0, sized ? cache.samples : null),
+        image: sized ? cache.image : ctx.createImageData(cw, ch),
       };
     }
     shade(cache.image.data, cache.samples, cw, ch, cx, cy, R, lat0, lon0, sunPosition(now()));
@@ -442,9 +457,35 @@ export function mountEarth(canvas, opts = {}) {
       render();
     });
 
+  // Gesture frames are drawn at most once per display frame.
+  const queue = () => {
+    if (!frame) frame = requestAnimationFrame(() => { frame = 0; render(); });
+  };
+
   return {
+    view: () => ({ lat: lat0, lon: lon0 }),
+    setView(lat, lon, quick = false) {
+      lat0 = Math.max(-89, Math.min(89, lat));
+      lon0 = ((((lon + 180) % 360) + 360) % 360) - 180;
+      draft = quick;
+      queue();
+    },
+    settle() {
+      draft = false;
+      queue();
+    },
+    radius() {
+      const box = canvas.getBoundingClientRect();
+      return Math.min(box.width, box.height) / 2 / (1 + FRAME);
+    },
+    contains(x, y) {
+      const box = canvas.getBoundingClientRect();
+      const r = Math.min(box.width, box.height) / 2 / (1 + FRAME);
+      return Math.hypot(x - (box.left + box.width / 2), y - (box.top + box.height / 2)) <= r;
+    },
     destroy() {
       destroyed = true;
+      cancelAnimationFrame(frame);
       observer.disconnect();
       clearInterval(tick);
       clearTimeout(resizeTimer);

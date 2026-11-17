@@ -133,6 +133,20 @@ p {
   filter: brightness(var(--hound-brightness, 1));
 }
 
+/* The Earth can be turned by hand (spin.js). Over the Earth the cursor is a
+   hand; while it's being turned, nothing on the page gets selected. */
+html.earth-grab body {
+  cursor: grab;
+}
+
+html.earth-spinning,
+html.earth-spinning body {
+  cursor: grabbing;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 /* Until the script has placed things, keep the art out of the way. */
 .scene:not(.is-live) {
   visibility: hidden;

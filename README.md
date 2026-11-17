@@ -116,10 +116,13 @@ Every page shares one background, drawn in the browser from files in this repo. 
 | `assets/img/niche-hounds-hound.svg` | The hound from the mark, as a still image. |
 | `assets/js/earth.js` | Draws Earth into a canvas with live day and night. |
 | `assets/js/astro.js` | Sun position and location from the time zone. |
+| `assets/js/spin.js` | Lets visitors turn the Earth by hand. |
 
 The background is fixed to the viewport, so content scrolls over it in translucent panels (`.panel`). Earth and the horizon sit in the same place on every page and depend only on the window size, so nothing moves when you go from page to page. The hound is full cream at the top of the page and fades to grey as you scroll, so it does not glow through the panels passing over it. On short windows it is drawn a little smaller so it stays clear of the hero copy.
 
 **Earth** is the only live part. It is centred on the visitor's approximate location, taken only from the browser's time zone (`Intl`, via a lookup table; no Geolocation API, no IP lookup), with the real day/night terminator and city lights. It refreshes once a minute.
+
+Visitors can **turn the Earth**: with a mouse or trackpad, press on it and drag (the cursor shows a hand over it); on a touchscreen, press and hold for a moment, then drag, so a quick swipe over the Earth still scrolls the page. North stays up. A flick coasts to a stop (no coasting with reduced motion). The Earth stays where it was left until the page reloads. Presses on links, buttons, the header, cards or the words themselves go to them, not the Earth. While it turns, the globe is drawn at a lower resolution, then redrawn sharp when it stops.
 
 **Moon and hound** are still. The horizon is the top of a small sphere, cresting right of centre; a phone sees a narrower slice of the same curve.
 
