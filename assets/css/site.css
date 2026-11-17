@@ -442,10 +442,13 @@ main {
   align-items: start;
 }
 
+/* Outline buttons get a navy fill, so on the smallest phones the hound
+   standing behind the hero buttons doesn't show through them. */
 .button {
   display: inline-block;
   padding: 0.55rem 1rem;
   border: 1px solid var(--cream);
+  background: var(--navy);
   border-radius: 999px;
   text-decoration: none;
   font-weight: 600;

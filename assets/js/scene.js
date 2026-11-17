@@ -48,10 +48,12 @@ function start(scene) {
       // image top sits 525 units above the paws.
       const full = mobile ? Math.min(W * 0.56, H * 0.3) : Math.min(H * 0.37, W * 0.3);
       // Its ears stay clear of the hero copy -- headline, subhead and the
-      // buttons under them. Where the copy reaches far enough down to touch
-      // them, the hound is drawn a little smaller, never below 70% of its usual
-      // size. Measured in page coordinates, since the page may load scrolled
-      // down to a section.
+      // buttons under them. Where the copy reaches down far enough to touch
+      // them, the hound first steps forward (lower on the near ground, down to
+      // the bottom of the window), then is drawn smaller, never below 55% of
+      // its usual size. Measured in page coordinates, since the page may load
+      // scrolled down to a section. On the smallest phones it can still reach
+      // the buttons; it sits behind them there.
       const copy = document.querySelector('.hero-copy');
       const limit = copy ? copy.getBoundingClientRect().bottom + window.scrollY + 24 : -Infinity;
       let dogH = full;
@@ -59,10 +61,14 @@ function start(scene) {
       for (let i = 0; i < 4; i++) {
         k = dogH / 505;
         dogX = mobile ? W * 0.42 : Math.max(W * 0.25, 300 * k + 24);
-        ground = Math.min(surfaceY(dogX) + dogH * 0.22, H - dogH * 0.06);
+        const natural = surfaceY(dogX) + dogH * 0.22;
+        const lowest = H - dogH * 0.06;
+        // the ground line that puts the ears exactly at the limit
+        const needed = limit + 525 * k;
+        ground = Math.min(Math.max(Math.min(natural, lowest), needed), lowest);
         const fits = ((ground - limit) / 525) * 505;
-        if (dogH <= fits + 0.5 || dogH <= full * 0.7) break;
-        dogH = Math.max(fits, full * 0.7);
+        if (dogH <= fits + 0.5 || dogH <= full * 0.55) break;
+        dogH = Math.max(fits, full * 0.55);
       }
       Object.assign(hound.style, {
         left: `${dogX - (376 - 90) * k}px`,
