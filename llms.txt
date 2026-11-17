@@ -1,0 +1,27 @@
+---
+layout: null
+permalink: /llms.txt
+sitemap: false
+---
+{%- comment -%}
+A plain-text summary of the site for AI assistants and search tools
+(llmstxt.org). Built from _config.yml, _ventures/ and _data/team.yml, so it
+stays in step with the home page. Nothing here needs editing by hand.
+{%- endcomment -%}
+# {{ site.title }}
+
+> {{ site.description }}
+
+Niche Hounds finds markets that bigger companies skip, builds products people enjoy using, and keeps the ones that create value. The whole site is one page: the ventures, then the team.
+{% assign status_order = "Live,Beta,Stealth,Retired" | split: "," %}
+## Ventures
+{% for s in status_order %}{% assign group = site.ventures | where: "status", s | sort: "title" %}{% for v in group %}
+- [{{ v.title }}]({{ v.url | absolute_url }}): {{ v.status }}. {{ v.description | strip }}{% assign w = v.website_url | strip %}{% if w != "" %} Website: {{ w }}{% endif %}{% endfor %}{% endfor %}
+
+## Team
+{% for p in site.data.team %}
+- {{ p.name }}, {{ p.role }}. {{ p.bio | first }}{% if p.linkedin %} LinkedIn: {{ p.linkedin }}{% endif %}{% endfor %}
+
+## Site
+
+- [Home]({{ '/' | absolute_url }}): The venture studio, its ventures and its team.

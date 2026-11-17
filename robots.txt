@@ -1,0 +1,11 @@
+---
+layout: null
+permalink: /robots.txt
+sitemap: false
+---
+# Every crawler, including AI search and assistant crawlers, may read the
+# whole site. llms.txt is a plain-text summary written for them.
+User-agent: *
+Allow: /
+
+Sitemap: {{ '/sitemap.xml' | absolute_url }}

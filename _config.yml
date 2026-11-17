@@ -1,5 +1,12 @@
 title: Niche Hounds
-description: Serve the niche. Create value, or kill the idea fast.
+# Search and sharing. home_title is the home page's <title>; other pages are
+# "<page title> · Niche Hounds". description is the home page's snippet in
+# search results and link previews. See _includes/seo.html.
+home_title: "Niche Hounds | A venture studio for overlooked markets"
+description: "Niche Hounds is a venture studio building small, sharp products for overlooked markets, from aircraft sales leads to learning games for kids."
+image: /assets/img/og-default.png
+image_alt: "Niche Hounds: small, sharp products for overlooked markets. A hound on the moon with the Earth behind."
+logo: /assets/img/niche-hounds-logo-512.png
 # The site lives at the root of nichehounds.com. The domain is attached in the
 # repo's Settings -> Pages -> Custom domain, not with a CNAME file (the Actions
 # deploy ignores one). Every internal link goes through relative_url, so these

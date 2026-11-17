@@ -1,0 +1,18 @@
+---
+layout: default
+title: Page not found
+description: This page drifted off. Head back to the Niche Hounds home page.
+permalink: /404.html
+noindex: true
+sitemap: false
+show_title: true
+kicker: "404"
+lede: "This page drifted off into space. It was moved, renamed, or never existed."
+---
+{% comment %}GitHub Pages serves this for any address that doesn't exist.{% endcomment %}
+<div class="page-body">
+  <p class="hero-actions">
+    <a class="button button--primary" href="{{ '/' | relative_url }}">Back to the home page</a>
+    <a class="button" href="{{ '/#ventures' | relative_url }}">See the ventures</a>
+  </p>
+</div>

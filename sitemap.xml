@@ -1,0 +1,22 @@
+---
+layout: null
+permalink: /sitemap.xml
+sitemap: false
+---
+{%- comment -%}
+The pages search engines should index: the home page and each venture page.
+Redirect pages, the 404 page and anything with `sitemap: false` or
+`noindex: true` in its front matter are left out.
+{%- endcomment -%}
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>{{ '/' | absolute_url }}</loc>
+    <lastmod>{{ site.time | date_to_xmlschema }}</lastmod>
+  </url>
+{%- for v in site.ventures %}{% unless v.sitemap == false or v.noindex %}
+  <url>
+    <loc>{{ v.url | absolute_url }}</loc>
+  </url>
+{%- endunless %}{% endfor %}
+</urlset>

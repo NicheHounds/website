@@ -89,6 +89,17 @@ The card links to the venture page. The website button is a separate link (`targ
 
 Anything after the front matter is optional Markdown and appears on the venture page under the summary.
 
+## Search and sharing
+
+- **Head tags** come from `_includes/seo.html`: the `<title>`, meta description, canonical address, Open Graph and X card tags, and on the home page Organization and WebSite structured data (founders from `_data/team.yml`). The home page's title and description are `home_title` and `description` in `_config.yml`; a venture page uses its own `title` and `description`.
+- **Share image**: `assets/img/og-default.png`, 1200×630, a still of the hero. `niche-hounds-logo-512.png` (the logo for search results) and `apple-touch-icon.png` are the mark on navy.
+- **`/robots.txt`** lets every crawler in and points at the sitemap.
+- **`/sitemap.xml`** lists the home page and every venture page, built from `_ventures/`. Redirect pages and the 404 page stay out.
+- **`/llms.txt`** is a plain-text summary for AI assistants, built from `_config.yml`, `_ventures/` and `_data/team.yml`, so it never needs editing by hand.
+- **`/404.html`** is served for any address that doesn't exist. It is marked `noindex`.
+
+To keep a page out of search, give it `noindex: true` in its front matter; `sitemap: false` keeps it out of the sitemap only.
+
 ## The space background
 
 Every page shares one background, drawn in the browser from files in this repo. Nothing is fetched from a third party, there are no trackers, and the visitor is never asked for their location.
